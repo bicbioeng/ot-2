@@ -1,0 +1,11 @@
+# Curated, VERIFIED-to-load labware load-names (opentrons 8.8.2, apiLevel 2.20).
+# static_checks flags any load_labware name NOT on this list as "unknown — verify
+# it exists or supply a custom .json". This is the hallucinated-labware guard.
+# Verified by scripts/capture_contract.py -> captured/analyze_contract.md.
+opentrons_96_tiprack_20ul
+opentrons_96_tiprack_300ul
+opentrons_96_tiprack_1000ul
+nest_12_reservoir_15ml
+nest_96_wellplate_200ul_flat
+corning_12_wellplate_6.9ml_flat
+corning_24_wellplate_3.4ml_flat

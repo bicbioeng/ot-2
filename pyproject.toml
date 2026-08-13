@@ -1,0 +1,42 @@
+[project]
+name = "paper2protocol"
+version = "0.1.0"
+description = "Ingest a scientific paper -> generator LLM writes an Opentrons protocol -> Claude Code drives a deterministic validate->repair loop gated by the real opentrons analyze engine. LABA / Lab AI-OS."
+requires-python = ">=3.10,<3.11"  # match the OT-2 robot software (CPython 3.10)
+dependencies = [
+    "opentrons>=8.0,<9",  # exact bench-robot pin deferred to M0/M1 capture (see plan §9)
+    "pydantic>=2",
+    "jsonschema>=4",
+    "click>=8",
+    "rich>=13",           # loop panel + human-readable tables
+]
+
+[project.optional-dependencies]
+# Stage 1 (M4) PDF ingestion — not needed for the deterministic judges (M1-M3)
+pdf = ["pdfplumber>=0.11", "pymupdf>=1.24"]
+# LLM generator/critic providers (M5+) — one key boots; second family degrades gracefully
+llm = ["anthropic>=0.40", "google-genai>=0.3", "openai>=1.40"]
+web = [
+    "fastapi>=0.141.1",
+    "python-multipart>=0.0.32",
+    "uvicorn>=0.52.1",
+]
+
+[project.scripts]
+paper2protocol = "paper2protocol.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paper2protocol"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

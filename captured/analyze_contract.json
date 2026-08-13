@@ -1,0 +1,124 @@
+{
+  "opentrons_version": "8.8.2",
+  "python_version": "3.10.20",
+  "max_supported_apiLevel": "2.27",
+  "analyze_invocation": "python -m opentrons.cli analyze --json-output - [--check] [--rtp-values '{...}'] PROTOCOL.py [labware.json ...]",
+  "fixtures": {
+    "good_minimal": {
+      "result": "ok",
+      "n_commands": 9,
+      "n_errors": 0,
+      "top_level_keys": [
+        "commandAnnotations",
+        "commandPreconditions",
+        "commands",
+        "config",
+        "createdAt",
+        "errors",
+        "files",
+        "labware",
+        "liquidClasses",
+        "liquids",
+        "metadata",
+        "modules",
+        "pipettes",
+        "result",
+        "robotType",
+        "runTimeParameters"
+      ],
+      "exit_code_no_check": 0,
+      "exit_code_with_check": 0,
+      "error_shape": [],
+      "stderr_tail": "/Users/sandesh/.opentrons/robot_settings.json not found. Loading defaults\nDeck calibration not found.\n/Users/sandesh/.opentrons/deck_calibration.json not found. Loading defaults"
+    },
+    "good_dilution": {
+      "result": "ok",
+      "n_commands": 44,
+      "n_errors": 0,
+      "top_level_keys": [
+        "commandAnnotations",
+        "commandPreconditions",
+        "commands",
+        "config",
+        "createdAt",
+        "errors",
+        "files",
+        "labware",
+        "liquidClasses",
+        "liquids",
+        "metadata",
+        "modules",
+        "pipettes",
+        "result",
+        "robotType",
+        "runTimeParameters"
+      ],
+      "exit_code_no_check": 0,
+      "exit_code_with_check": 0,
+      "error_shape": [],
+      "stderr_tail": "/Users/sandesh/.opentrons/robot_settings.json not found. Loading defaults\nDeck calibration not found.\n/Users/sandesh/.opentrons/deck_calibration.json not found. Loading defaults"
+    },
+    "bad_overaspirate": {
+      "result": "not-ok",
+      "n_commands": 6,
+      "n_errors": 1,
+      "top_level_keys": [
+        "commandAnnotations",
+        "commandPreconditions",
+        "commands",
+        "config",
+        "createdAt",
+        "errors",
+        "files",
+        "labware",
+        "liquidClasses",
+        "liquids",
+        "metadata",
+        "modules",
+        "pipettes",
+        "result",
+        "robotType",
+        "runTimeParameters"
+      ],
+      "exit_code_no_check": 0,
+      "exit_code_with_check": 255,
+      "error_shape": [
+        {
+          "keys": [
+            "createdAt",
+            "detail",
+            "errorCode",
+            "errorInfo",
+            "errorType",
+            "id",
+            "isDefined",
+            "wrappedErrors"
+          ],
+          "errorType": "ExceptionInProtocolError",
+          "errorCode": "4000",
+          "detail_head": "ProtocolCommandFailedError [line 18]: Error 4000 GENERAL_ERROR (ProtocolCommandFailedError): InvalidAspirateVolumeError: Cannot aspirate 400.0 \u00b5L when only 300 ",
+          "has_wrappedErrors": true
+        }
+      ],
+      "stderr_tail": "    exec_run(\n  File \"/Users/sandesh/usd-projects/paper2protocol/.venv/lib/python3.10/site-packages/opentrons/protocols/execution/execute_python.py\", line 169, in exec_run\n    _raise_pretty_protocol_error(exception=e, filename=filename)\n  File \"/Users/sandesh/usd-projects/paper2protocol/.venv/lib/python3.10/site-packages/opentrons/protocols/execution/execute_python.py\", line 71, in _raise_pretty_protocol_error\n    raise ExceptionInProtocolError(\nopentrons.protocols.execution.errors.ExceptionInProtocolError: ProtocolCommandFailedError [line 18]: Error 4000 GENERAL_ERROR (ProtocolCommandFailedError): InvalidAspirateVolumeError: Cannot aspirate 400.0 \u00b5L when only 300 is available in the tip."
+    }
+  },
+  "library": {
+    "labware_ok": {
+      "opentrons_96_tiprack_300ul": true,
+      "opentrons_96_tiprack_20ul": true,
+      "opentrons_96_tiprack_1000ul": true,
+      "nest_12_reservoir_15ml": true,
+      "corning_24_wellplate_3.4ml_flat": true,
+      "corning_12_wellplate_6.9ml_flat": true,
+      "nest_96_wellplate_200ul_flat": true
+    },
+    "labware_bad": {},
+    "pipettes_ok": {
+      "p20_single_gen2": true,
+      "p300_single_gen2": true,
+      "p1000_single_gen2": true
+    },
+    "pipettes_bad": {}
+  }
+}

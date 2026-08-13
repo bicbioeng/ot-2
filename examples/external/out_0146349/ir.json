@@ -1,0 +1,78 @@
+{
+  "protocol_name": "Broth Microdilution and Cytotoxicity Assay Serial Dilution",
+  "paper": {
+    "title": "Piper betle Extracts and Multiple Drug Resistant Bacteria",
+    "assay_type": "Broth microdilution MIC/MBC and MTT cytotoxicity assay"
+  },
+  "api_level": "2.20",
+  "robot_type": "OT-2",
+  "dilution": {
+    "stock_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A1",
+      "liquid": "Piper betle plant extract stock solution",
+      "stock_conc": {
+        "mg_per_ml": 100
+      }
+    },
+    "diluent_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A2",
+      "liquid": "cation-adjusted Mueller-Hinton broth (MHB) / DMEM"
+    },
+    "dest_labware": "nest_96_wellplate_200ul_flat",
+    "targets": [
+      {
+        "well": "A1",
+        "vv": 1.0
+      },
+      {
+        "well": "A2",
+        "vv": 0.5
+      },
+      {
+        "well": "A3",
+        "vv": 0.25
+      },
+      {
+        "well": "A4",
+        "vv": 0.125
+      },
+      {
+        "well": "A5",
+        "vv": 0.0625
+      },
+      {
+        "well": "A6",
+        "vv": 0.03125
+      },
+      {
+        "well": "A7",
+        "vv": 0.015625
+      },
+      {
+        "well": "A8",
+        "vv": 0.0078125
+      }
+    ],
+    "total_vol_ul": 100,
+    "tolerance_vv": 0.01
+  },
+  "gates": [
+    {
+      "id": "G1",
+      "kind": "pause",
+      "prompt": "Inspect plate, add bacterial inoculum or cell suspension to the respective assays, and proceed to incubation."
+    }
+  ],
+  "off_deck": [
+    "Plant material extraction (ethanol, methanol, supercritical CO2)",
+    "Bacterial culture preparation and McFarland adjustment",
+    "Incubation of microdilution trays (35 C for 16-20 hours)",
+    "Sub-culturing for MBC on sheep BAP",
+    "MTT assay incubation and absorbance reading on microplate reader"
+  ],
+  "open_clarifications": [
+    "The paper specifies a two-fold serial dilution starting from 100 mg/ml down to 2.44 ug/ml for the antimicrobial broth microdilution assay, and specific concentrations (100 ug/ml down to 0.78 ug/ml) for the MTT assay. Standard 8-step two-fold serial dilution fractions are modeled here."
+  ]
+}

@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+# generated run outputs (keep captured/ golden fixtures, ignore transient runs)
+examples/**/out/
+.uv/
+uv.lock
+
+# --- Isaac Sim twin ---
+# regenerable CAD previews / verification renders (18M); a curated few live in docs/isaac-twin/
+twin/cad/out/
+# transient twin renders (mp4s, frame dumps, reports)
+twin/out/
+# but the reference example's ledger IS the input the twin runs on — keep it
+!examples/chemotaxis_prism/out/
+!examples/chemotaxis_prism/out/analysis.json
+__pycache__/
+.DS_Store

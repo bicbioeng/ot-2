@@ -1,0 +1,151 @@
+{
+  "deck": "ot2_standard",
+  "schema": 3,
+  "slots": {
+    "1": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "2": {
+      "position": [
+        132.5,
+        0.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "3": {
+      "position": [
+        265.0,
+        0.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "4": {
+      "position": [
+        0.0,
+        90.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "5": {
+      "position": [
+        132.5,
+        90.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "6": {
+      "position": [
+        265.0,
+        90.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "7": {
+      "position": [
+        0.0,
+        181.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "8": {
+      "position": [
+        132.5,
+        181.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "9": {
+      "position": [
+        265.0,
+        181.0,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "10": {
+      "position": [
+        0.0,
+        271.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "11": {
+      "position": [
+        132.5,
+        271.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    },
+    "12": {
+      "position": [
+        265.0,
+        271.5,
+        0.0
+      ],
+      "boundingBox": {
+        "xDimension": 128.0,
+        "yDimension": 86.0,
+        "zDimension": 0
+      }
+    }
+  },
+  "source": "opentrons_shared_data.deck.load('ot2_standard',3)"
+}

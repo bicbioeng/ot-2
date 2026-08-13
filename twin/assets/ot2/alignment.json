@@ -1,0 +1,13 @@
+{
+  "asset": "ot2_reference_detailed.stl",
+  "asset_basic": "ot2_reference_basic.stl",
+  "pos": [-115.6, -286.9, -338.9],
+  "zrot_deg": 0,
+  "scale": 1.0,
+  "rgba": "0.60 0.66 0.74 0.16",
+  "method": "DETAILED reference model (42,172 tris — full robot: enclosure, X-gantry rail, Z pipette carriage, deck plate with slot grid). Alignment derived analytically from the mesh, not guessed: the deck plate is the dominant up-facing plane at mesh-z=338.9 mm; its footprint center is (312.1, 465.7) mm. Translate maps that deck plate onto the functional Opentrons deck (center 196.5, 178.75, surface z=0): pos = [196.5-312.1, 178.75-465.7, 0-338.9] = [-115.6, -286.9, -338.9]. Rendered as a low-opacity GLASS shell so the real robot (frame, gantry, windows) is visible as context while the functional deck/labware/pipette stay OPAQUE and legible inside it. The mesh is non-colliding and never changes a coordinate; all functional geometry stays exact from the Opentrons definitions.",
+  "deck_plane_mesh_z_mm": 338.9,
+  "deck_plate_center_mesh_mm": [312.1, 465.7, 338.9],
+  "mesh_aabb_min_mm": [0.0, 0.0, 0.0],
+  "mesh_aabb_max_mm": [624.3, 662.0, 567.5]
+}

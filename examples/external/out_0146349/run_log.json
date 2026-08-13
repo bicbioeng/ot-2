@@ -1,0 +1,56 @@
+[
+  {
+    "iteration": 1,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code",
+      "new_tip_policy L58: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip='never')",
+      "new_tip_policy L70: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip='never')"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 2,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 3,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code",
+      "new_tip_policy L77: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip='never')",
+      "new_tip_policy L90: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip='never')"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 4,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 5,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  }
+]

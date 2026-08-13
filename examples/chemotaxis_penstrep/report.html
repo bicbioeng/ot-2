@@ -1,0 +1,512 @@
+<title>Paper2Protocol &mdash; from paper to robot</title>
+<style>
+  :root{
+    --bg:#070b0d; --ink:#e6f2f1; --muted:#8aa3a3; --faint:#5c7574;
+    --line:rgba(120,214,205,.14); --line2:rgba(120,214,205,.24);
+    --teal:#34e3cc; --teal-d:#159c8a; --cyan:#39d0e0;
+    --amber:#ffb45c; --blue:#63a2ff; --pass:#3fe392; --fail:#ff6b6b;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+    --glow:0 0 0 1px rgba(52,227,204,.08), 0 24px 60px -30px rgba(0,0,0,.95);
+    --wrap:1140px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  #bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
+  body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(1100px 620px at 50% -6%,transparent,rgba(7,11,13,.55) 66%,rgba(7,11,13,.9)),
+               linear-gradient(180deg,rgba(7,11,13,.2),rgba(7,11,13,.65))}
+  .mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
+  a{color:var(--teal);text-decoration:none}
+  ::selection{background:rgba(52,227,204,.26)}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+
+  /* nav */
+  nav{position:fixed;top:0;left:0;right:0;z-index:60;backdrop-filter:blur(14px);
+    background:linear-gradient(180deg,rgba(7,11,13,.82),rgba(7,11,13,.28));border-bottom:1px solid var(--line)}
+  .nav-in{max-width:var(--wrap);margin:0 auto;padding:13px 24px;display:flex;align-items:center;gap:22px}
+  .brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 14px var(--teal);animation:pulse 2.6s infinite}
+  @keyframes pulse{50%{opacity:.5;box-shadow:0 0 6px var(--teal)}}
+  .nav-links{display:flex;gap:24px;margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .nav-links a:hover{color:var(--ink)}
+  .badge-live{font-family:var(--mono);font-size:11px;color:#04110c;background:var(--pass);padding:5px 11px;border-radius:999px;font-weight:700;letter-spacing:.04em}
+  @media(max-width:760px){.nav-links{display:none}}
+
+  section{position:relative}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:12px}
+  .eyebrow::before{content:"";width:32px;height:1px;background:linear-gradient(90deg,var(--teal),transparent)}
+  .actnum{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--faint)}
+
+  /* hero */
+  .hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 30px;text-align:center}
+  .hero .eyebrow{justify-content:center;margin-bottom:24px}
+  .hero h1{font-size:clamp(46px,8.4vw,98px);font-weight:800;letter-spacing:-.038em;line-height:.96;
+    background:linear-gradient(180deg,#f6fffe,#a7dbd4 94%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{max-width:62ch;margin:22px auto 0;color:var(--muted);font-size:clamp(15px,2.1vw,19px)}
+  .hero .sub b{color:var(--ink);font-weight:600}
+  .cta{display:flex;gap:14px;justify-content:center;margin-top:34px;flex-wrap:wrap}
+  .btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:14px 24px;border-radius:12px;cursor:pointer;border:1px solid var(--line2);
+    background:rgba(10,18,20,.5);color:var(--ink);transition:.18s;display:inline-flex;align-items:center;gap:9px}
+  .btn:hover{border-color:var(--teal);transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(180deg,var(--teal),var(--teal-d));color:#04110c;border:0;box-shadow:0 12px 34px -12px rgba(52,227,204,.65)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+  .scrollcue{margin-top:52px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--faint);animation:bob 2.4s infinite}
+  @keyframes bob{50%{transform:translateY(6px);opacity:.6}}
+
+  /* pipeline 3D */
+  .stage{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+  .scene{perspective:1500px;perspective-origin:50% 42%}
+  .pipe-frame{position:relative;border:1px solid var(--line);border-radius:22px;padding:30px 26px 24px;
+    background:linear-gradient(180deg,rgba(15,28,30,.52),rgba(8,15,17,.42));box-shadow:var(--glow);overflow:hidden;transform-style:preserve-3d}
+  .pipe-frame::before{content:"";position:absolute;inset:0;pointer-events:none;transition:.25s;
+    background:radial-gradient(560px 240px at var(--mx,50%) var(--my,0%),rgba(52,227,204,.10),transparent 70%)}
+  #flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+  .nodes{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:13px;z-index:2;transform-style:preserve-3d;transition:transform .12s ease-out;will-change:transform}
+  .node{background:linear-gradient(180deg,rgba(18,33,35,.92),rgba(10,19,21,.86));border:1px solid var(--line);border-radius:15px;padding:15px 13px;min-height:158px;
+    display:flex;flex-direction:column;gap:9px;position:relative;transform-style:preserve-3d;
+    transform:translateZ(var(--tz,0px)) translateY(var(--ty,0px));
+    transition:border-color .3s, box-shadow .3s, transform .35s cubic-bezier(.2,.7,.2,1)}
+  .node .ni{width:27px;height:27px;color:var(--teal);opacity:.85;stroke-width:1.6}
+  .node .nk{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;color:var(--faint)}
+  .node .nt{font-family:var(--mono);font-size:12.5px;font-weight:650;letter-spacing:-.01em;line-height:1.15}
+  .node .nd{font-size:11px;color:var(--muted);line-height:1.4;flex:1}
+  .node .chip{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.05em;padding:3px 6px;border-radius:5px;align-self:flex-start;
+    background:rgba(52,227,204,.12);color:var(--teal);border:1px solid rgba(52,227,204,.26)}
+  .node.active{--ty:-8px;border-color:var(--teal);box-shadow:0 0 0 1px var(--teal),0 20px 50px -16px rgba(52,227,204,.75)}
+  .node.pass{border-color:rgba(63,227,146,.6);box-shadow:0 0 0 1px rgba(63,227,146,.5)}
+  .node.pass .ni{color:var(--pass)}
+  .node.fail{--ty:-4px;border-color:rgba(255,107,107,.75);box-shadow:0 0 0 1px rgba(255,107,107,.6);animation:shake .4s}
+  .node.fail .ni{color:var(--fail)}
+  @keyframes shake{25%{transform:translateZ(var(--tz,0)) translateX(-4px)}75%{transform:translateZ(var(--tz,0)) translateX(4px)}}
+  .node .state{position:absolute;top:11px;right:12px;font-family:var(--mono);font-size:12px;opacity:0;transition:.25s}
+  .node.pass .state{opacity:1;color:var(--pass)} .node.fail .state{opacity:1;color:var(--fail)}
+  @media(max-width:820px){.nodes{grid-template-columns:repeat(3,1fr)} .scene{perspective:none}}
+  @media(max-width:520px){.nodes{grid-template-columns:repeat(2,1fr)} .node{min-height:auto}}
+
+  .runbar{display:flex;align-items:stretch;gap:16px;margin-top:18px;flex-wrap:wrap;position:relative;z-index:2}
+  .console{flex:1;min-width:270px;background:rgba(5,11,12,.86);border:1px solid var(--line);border-radius:12px;font-family:var(--mono);font-size:12px;padding:13px 15px;height:100px;overflow:hidden}
+  .console .ln{opacity:0;transform:translateY(4px);transition:.3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .console .ln.show{opacity:1;transform:none}
+  .console .ok{color:var(--pass)} .console .bad{color:var(--fail)} .console .dim{color:var(--faint)} .console .t{color:var(--teal)}
+  .platewrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .plate{display:grid;grid-template-columns:repeat(4,15px);grid-auto-rows:15px;gap:5px;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(6,15,16,.8)}
+  .plate i{width:15px;height:15px;border-radius:50%;background:#0e1c1d;border:1px solid var(--line);transition:background .8s,box-shadow .8s}
+  .plate i.f15{background:radial-gradient(circle,#ffb45c,#7a5a33 92%);box-shadow:0 0 9px rgba(255,180,92,.45)}
+  .plate i.f25{background:radial-gradient(circle,#ffd98a,#ffb45c 42%,#8a5f2c 96%);box-shadow:0 0 13px rgba(255,180,92,.72)}
+  .plate-tag{font-family:var(--mono);font-size:10px;color:var(--faint)}
+
+  /* content */
+  .block{padding:96px 0}
+  .lead{display:flex;flex-direction:column;gap:6px;margin-bottom:30px}
+  .lead h2{font-size:clamp(26px,4vw,40px);font-weight:750;letter-spacing:-.025em}
+  .reveal{opacity:0;transform:translateY(26px);transition:.8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  .prose{font-size:17.5px;color:var(--ink);max-width:64ch;line-height:1.6}
+  .prose .hi{color:var(--teal);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .stat{border:1px solid var(--line);border-radius:18px;padding:24px;background:linear-gradient(180deg,rgba(15,28,30,.5),rgba(8,15,17,.4));position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;left:0;top:0;height:100%;width:3px;background:linear-gradient(180deg,var(--teal),transparent)}
+  .stat .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .stat .v{font-size:33px;font-weight:780;letter-spacing:-.02em;margin:8px 0 6px}
+  .stat .v small{font-size:14px;color:var(--muted);font-weight:500} .stat .v.pass{color:var(--pass)}
+  .stat .d{font-size:13.5px;color:var(--muted);line-height:1.5}
+  @media(max-width:760px){.stats{grid-template-columns:1fr}}
+
+  .cols{display:grid;grid-template-columns:1.05fr .95fr;gap:26px;align-items:start}
+  @media(max-width:880px){.cols{grid-template-columns:1fr}}
+
+  .catch{display:flex;gap:15px;padding:17px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .catch:last-child{border-bottom:0}
+  .catch .lyr{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;padding:5px 9px;border-radius:6px;flex:none;margin-top:2px;
+    background:rgba(255,107,107,.12);color:var(--fail);border:1px solid rgba(255,107,107,.3);white-space:nowrap}
+  .catch p{margin:0;font-size:14.5px;color:var(--muted)} .catch p b{color:var(--ink)} .catch .mono{color:var(--teal)}
+  .cardbox{border:1px solid var(--line);border-radius:18px;padding:26px;background:linear-gradient(180deg,rgba(15,28,30,.42),rgba(8,15,17,.36))}
+
+  .srch{font-size:13px;font-family:var(--mono);letter-spacing:.05em;color:var(--faint);text-transform:uppercase;margin:0 0 8px}
+  .refs{list-style:none;margin:0 0 26px;padding:0}
+  .refs li{font-size:13.5px;color:var(--muted);padding:9px 0;border-bottom:1px solid var(--line);line-height:1.55}
+  .refs li:last-child{border-bottom:0} .refs li b{color:var(--ink);font-weight:600} .refs li i{color:var(--teal);font-style:normal}
+  .codewrap{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:rgba(6,13,14,.9)}
+  .codetop{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.05em}
+  .codetop .dots{display:flex;gap:6px} .codetop .dots i{width:9px;height:9px;border-radius:50%;background:#22302f;display:block}
+  pre{margin:0;padding:18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.66;color:#cfe0df}
+  pre .k{color:var(--teal)} pre .s{color:var(--amber)} pre .n{color:var(--blue)} pre .c{color:var(--faint)}
+  .runcmds{background:rgba(6,13,14,.9);border:1px solid var(--line);border-radius:18px;padding:20px;font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.95;overflow-x:auto;white-space:pre-wrap}
+  .runcmds .c{color:var(--faint)} .runcmds b{color:var(--teal);font-weight:600}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 56px;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .footrow{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important} html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none} .nodes{transform:none!important}
+  }
+</style>
+
+<canvas id="bg"></canvas>
+
+<nav><div class="nav-in">
+  <div class="brand"><span class="dot"></span>Paper2Protocol</div>
+  <div class="nav-links">
+    <a href="#pipeline">Pipeline</a><a href="#ingest">Ingest</a>
+    <a href="#validator">The validator</a><a href="#protocol">Protocol</a><a href="#sources">Sources</a>
+  </div>
+  <span class="badge-live">&#9679; VERIFIED LIVE</span>
+</div></nav>
+
+<section class="hero" id="top"><div class="wrap">
+  <div class="eyebrow">LABA / Lab AI-OS &nbsp;&middot;&nbsp; agent-in-the-loop</div>
+  <h1>Paper to robot,<br>one validated protocol.</h1>
+  <p class="sub">A scientific paper's methods section becomes an Opentrons protocol &mdash; written by a live model, <b>gated by the real robot analysis engine</b>, repaired until correct, and dispatched to the OT-2. Every check is deterministic; the model never gets the last word.</p>
+  <div class="cta">
+    <button class="btn primary" id="play">&#9654; &nbsp;Play a real run</button>
+    <a class="btn" href="#protocol">&darr; &nbsp;Get the protocol</a>
+  </div>
+  <div class="scrollcue">SCROLL &mdash; WATCH IT RUN</div>
+</div></section>
+
+<section id="pipeline" class="stage">
+  <div class="scene">
+    <div class="pipe-frame" id="frame">
+      <canvas id="flow"></canvas>
+      <div class="nodes" id="nodes">
+        <div class="node" data-n="0" style="--tz:26px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2.5h8l4 4v15H6z"/><path d="M14 2.5v4h4"/><path d="M9 12h6M9 15.5h6"/></svg>
+          <div class="nk">01 &middot; INPUT</div><div class="nt">Paper</div>
+          <div class="nd">The chemotaxis / Pen-Strep paper (PDF), methods read in full.</div>
+          <span class="chip">chemotaxis.pdf</span><span class="state">&#10003;</span>
+        </div>
+        <div class="node" data-n="1" style="--tz:-14px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 4.5h18l-7 8v6.5l-4 2v-8.5z"/></svg>
+          <div class="nk">02 &middot; PROCESS</div><div class="nt">Extract &rarr; spec</div>
+          <div class="nd">Methods &rarr; a typed spec (IR). Ambiguities flagged, not guessed.</div>
+          <span class="chip">ir.json</span><span class="state">&#10003;</span>
+        </div>
+        <div class="node" data-n="2" style="--tz:22px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><rect x="10" y="10" width="4" height="4"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg>
+          <div class="nk">03 &middot; LLM</div><div class="nt">Generate</div>
+          <div class="nd">Gemini writes the Opentrons protocol from the spec.</div>
+          <span class="chip">gemini &#10003;</span><span class="state">&#10003;</span>
+        </div>
+        <div class="node" data-n="3" style="--tz:-10px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg>
+          <div class="nk">04 &middot; OUTPUT</div><div class="nt">Protocol</div>
+          <div class="nd">protocol.py for the OT-2, apiLevel 2.20.</div>
+          <span class="chip">protocol.py</span><span class="state">&#10003;</span>
+        </div>
+        <div class="node" data-n="4" style="--tz:20px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.5l8 3v6c0 5-3.5 8-8 10.5-4.5-2.5-8-5.5-8-10.5v-6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+          <div class="nk">05 &middot; VERIFY</div><div class="nt">Validate + repair</div>
+          <div class="nd">static &rarr; analyze &rarr; conformance. Repairs on any failure.</div>
+          <span class="chip">the gate</span><span class="state">&#10003;</span>
+        </div>
+        <div class="node" data-n="5" style="--tz:-16px">
+          <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4.5" y="8.5" width="15" height="10" rx="2"/><circle cx="9.5" cy="13.5" r="1.4"/><circle cx="14.5" cy="13.5" r="1.4"/><path d="M12 3.5v5M10.3 3.5h3.4M3 12v3M21 12v3"/></svg>
+          <div class="nk">06 &middot; DISPATCH</div><div class="nt">Run on OT-2</div>
+          <div class="nd">Upload over the Runs API and run. Verified on a simulated OT-2.</div>
+          <span class="chip">OT-2 :31950</span><span class="state">&#10003;</span>
+        </div>
+      </div>
+      <div class="runbar">
+        <div class="console" id="console"></div>
+        <div class="platewrap">
+          <div class="plate" id="plate"></div>
+          <div class="plate-tag">assay plate &middot; 0 / 15 / 25%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--faint);margin:16px 0 0">
+    drag across the pipeline to orbit it &middot; press <b style="color:var(--teal)">Play</b> to replay the real run</p>
+</section>
+
+<section class="block" id="live"><div class="wrap">
+  <div class="lead reveal"><span class="actnum">01 / PROOF</span><h2>Verified live &mdash; not a mockup.</h2></div>
+  <div class="stats">
+    <div class="stat reveal"><div class="k">Live generation</div><div class="v pass">converged</div><div class="d">Gemini <span class="mono">gemini-flash-latest</span> wrote a protocol that passed static + analyze + conformance on its first draft &mdash; 44 commands, 0 errors.</div></div>
+    <div class="stat reveal"><div class="k">Live repair</div><div class="v">2 <small>iterations</small></div><div class="d">Given a spec needing a human-handoff gate, the first draft was <b style="color:var(--fail)">rejected</b> by the gate check; the model read the feedback and added <span class="mono">protocol.pause("G1")</span>, then converged.</div></div>
+    <div class="stat reveal"><div class="k">Dispatch</div><div class="v pass">succeeded</div><div class="d">The validated protocol uploaded over the Runs API &rarr; run created &rarr; play &rarr; <b style="color:var(--pass)">succeeded</b> on a simulated OT-2. The same client drives a real robot.</div></div>
+  </div>
+  <p class="prose reveal" style="margin-top:38px">The acceptance decision is <span class="hi">plain code reading the real <span class="mono">opentrons analyze</span> engine</span> &mdash; never a model's opinion. The generator only proposes; three deterministic judges gate it, and the loop repairs on real errors until every one passes.</p>
+</div></section>
+
+<section class="block" id="ingest"><div class="wrap">
+  <div class="lead reveal"><span class="actnum">02 / INGEST</span><h2>Bring your own paper.</h2></div>
+  <div class="cols">
+    <div class="reveal">
+      <p class="prose" style="margin-bottom:20px">Point it at any PDF. It pulls the methods, extracts a typed spec, and either produces a runnable dilution protocol or says the paper has no aqueous step it can automate &mdash; it never invents one. Verified live on the chemotaxis paper: <b class="mono" style="color:var(--teal)">68 commands, 0 errors, converged in 2 iterations, dispatched</b>.</p>
+      <div class="runcmds"><span class="c"># read a paper -&gt; extract the spec (IR)</span>
+paper2protocol ingest <b>your_paper.pdf</b>
+
+<span class="c"># or the whole pipeline, paper -&gt; protocol -&gt; robot:</span>
+paper2protocol run <b>your_paper.pdf</b> --dispatch --export out/</div>
+    </div>
+    <div class="reveal">
+      <div class="cardbox">
+        <div class="srch">Extracted live from the chemotaxis PDF &mdash; clarifications it raised</div>
+        <div class="catch"><span class="lyr" style="background:rgba(255,180,92,.14);color:var(--amber);border-color:rgba(255,180,92,.32)">FLAG</span><p>The paper's target cell density is literally <span class="mono">"** determined by **"</span> &mdash; incomplete in the source. Surfaced, not guessed.</p></div>
+        <div class="catch"><span class="lyr" style="background:rgba(255,180,92,.14);color:var(--amber);border-color:rgba(255,180,92,.32)">FLAG</span><p>Concentration basis: <b>15% / 25% v/v of a 10,000 U/mL stock</b> &mdash; both readings recorded, the supported one used for v/v.</p></div>
+        <div class="catch"><span class="lyr" style="background:rgba(255,180,92,.14);color:var(--amber);border-color:rgba(255,180,92,.32)">FLAG</span><p>The intermediate prep volume isn't stated in the paper; a value was chosen for robot execution and logged.</p></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="block" id="validator"><div class="wrap">
+  <div class="lead reveal"><span class="actnum">03 / THE GATE</span><h2>What the validator catches.</h2></div>
+  <div class="cardbox reveal">
+    <div class="catch"><span class="lyr">STATIC</span><p><b>apiLevel declared in both</b> metadata and requirements, and transfers in a loop without <span class="mono">new_tip='always'</span> &mdash; caught before a simulation call is even spent.</p></div>
+    <div class="catch"><span class="lyr">ANALYZE</span><p><b>A well that doesn't exist</b> on a 24-well plate (<span class="mono">KeyError: 'A7'</span>) &mdash; only the real Protocol Engine catches it.</p></div>
+    <div class="catch"><span class="lyr">CONFORMANCE</span><p><b>A protocol that simulates perfectly but builds the wrong experiment</b> &mdash; 20% v/v delivered where 25% was intended. Reconstructed from the command ledger, not from the code's literals (which can lie).</p></div>
+  </div>
+  <p class="prose reveal" style="margin-top:28px">Its other job is <span class="hi">honesty</span>: it automates only the aqueous slice a pipette can actually do &mdash; the Pen-Strep dilution series &mdash; and hands off molten-agar casting, imaging, and incubation as explicit human steps, rather than pretending to automate them.</p>
+</div></section>
+
+<section class="block" id="protocol"><div class="wrap">
+  <div class="lead reveal"><span class="actnum">04 / OUTPUT</span><h2>The protocol &mdash; real, runnable.</h2></div>
+  <div class="cols">
+    <div class="reveal">
+      <div class="codewrap">
+        <div class="codetop"><span class="dots"><i></i><i></i><i></i></span> penstrep_dilution_ot2.py &middot; written by Gemini, validated by the engine</div>
+<pre id="code"><span class="c"># Generated live by Gemini, validated by opentrons analyze:</span>
+<span class="c"># result=ok, 44 commands, 0 errors  -  realized 0 / 15 / 25 % v/v</span>
+
+requirements = {<span class="s">"robotType"</span>: <span class="s">"OT-2"</span>, <span class="s">"apiLevel"</span>: <span class="s">"2.20"</span>}
+
+
+<span class="k">def</span> run(protocol):
+    reservoir = protocol.load_labware(<span class="s">"nest_12_reservoir_15ml"</span>, <span class="s">"1"</span>)
+    plate     = protocol.load_labware(<span class="s">"corning_24_wellplate_3.4ml_flat"</span>, <span class="s">"2"</span>)
+    tiprack   = protocol.load_labware(<span class="s">"opentrons_96_tiprack_300ul"</span>, <span class="s">"3"</span>)
+    p300 = protocol.load_instrument(<span class="s">"p300_single_gen2"</span>, mount=<span class="s">"left"</span>, tip_racks=[tiprack])
+    <span class="c"># diluent (LB) -&gt; A1/A2/A3 : 200 / 170 / 150 uL</span>
+    <span class="k">for</span> well, vol <span class="k">in</span> [(plate[<span class="s">"A1"</span>],<span class="n">200</span>), (plate[<span class="s">"A2"</span>],<span class="n">170</span>), (plate[<span class="s">"A3"</span>],<span class="n">150</span>)]:
+        p300.transfer(vol, reservoir[<span class="s">"A2"</span>], well, new_tip=<span class="s">"always"</span>)
+    <span class="c"># stock (PenStrep) -&gt; A2/A3 : 30 / 50 uL  =  15% / 25% v/v</span>
+    <span class="k">for</span> well, vol <span class="k">in</span> [(plate[<span class="s">"A2"</span>],<span class="n">30</span>), (plate[<span class="s">"A3"</span>],<span class="n">50</span>)]:
+        p300.transfer(vol, reservoir[<span class="s">"A1"</span>], well, new_tip=<span class="s">"always"</span>, mix_after=(<span class="n">3</span>,<span class="n">100</span>))</pre>
+      </div>
+      <div class="cta" style="justify-content:flex-start;margin-top:18px">
+        <button class="btn primary" id="dl">&darr; &nbsp;Download protocol.py</button>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--faint);align-self:center">validated &middot; ready to load onto the OT-2</span>
+      </div>
+    </div>
+    <div class="reveal">
+      <h3 style="font-size:18px;margin:0 0 14px">Run it on the machine</h3>
+      <div class="runcmds"><span class="c"># dry-run locally, no robot</span>
+opentrons_simulate <b>penstrep_dilution_ot2.py</b>
+
+<span class="c"># on a real OT-2 (software &ge; 7.0), over the Runs API:</span>
+paper2protocol dispatch \
+   --robot-url <b>http://ROBOT_IP:31950</b> \
+   penstrep_dilution_ot2.py
+
+<span class="c"># which drives, against :31950 &mdash;</span>
+POST /protocols                <span class="c"># upload</span>
+POST /runs                     <span class="c"># create run</span>
+POST /runs/{id}/actions {play}
+GET  /runs/{id}                <span class="c"># -&gt; succeeded</span></div>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:16px">Drop <span class="mono">--robot-url</span> to target the simulated OT-2 instead. Dispatch is gated on the wet-lab sign-off sheet that ships in the export bundle.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="block" id="sources"><div class="wrap">
+  <div class="lead reveal"><span class="actnum">05 / SOURCES</span><h2>Sources &amp; materials.</h2></div>
+  <p class="prose reveal" style="margin-bottom:30px">The design stands on published work in autonomous experimentation, LLM code-repair, and the Opentrons platform &mdash; the materials that shaped each decision. The ingested input is the lab's own chemotaxis manuscript.</p>
+  <div class="cols">
+    <div class="reveal">
+      <div class="srch">Input paper</div>
+      <ul class="refs">
+        <li><b>Efficacy of Penicillin-Streptomycin as a Repellent on Chemotaxis Behavior of Escherichia coli</b> &mdash; the lab manuscript ingested by the pipeline.</li>
+      </ul>
+      <div class="srch">Autonomous experimentation &amp; paper &rarr; protocol</div>
+      <ul class="refs">
+        <li>Boiko, MacKnight, Kline, Gomes &mdash; <b>Coscientist</b>: autonomous chemical research with large language models. <i>Nature</i> 624 (2023).</li>
+        <li>M. Bran, Cox, Schilter, White, Schwaller &mdash; <b>ChemCrow</b>: augmenting LLMs with chemistry tools. <i>Nature Machine Intelligence</i> (2024).</li>
+        <li><b>ProtoCode</b>: curating published protocols into a machine-readable IR that compiles to Opentrons / Autoprotocol. <i>SLAS Technology</i> (2024).</li>
+        <li>O'Donoghue et al. &mdash; <b>BioPlanner</b>: automatic evaluation of LLMs on protocol planning in biology. <i>EMNLP</i> (2023).</li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <div class="srch">The repair loop &amp; the deterministic gate</div>
+      <ul class="refs">
+        <li>Chen, Lin, Sch&auml;rli, Zhou &mdash; teaching LLMs to <b>self-debug</b> from execution feedback. <i>ICLR</i> (2024).</li>
+        <li>Shinn et al. &mdash; <b>Reflexion</b>: verbal reinforcement with episodic memory. <i>NeurIPS</i> (2023).</li>
+        <li>Olausson et al. &mdash; <b>Is self-repair a silver bullet?</b> A stronger, different-family critic beats self-critique. <i>ICLR</i> (2024).</li>
+        <li>Zheng et al. &mdash; <b>Judging LLM-as-a-Judge</b>: self-enhancement bias in model evaluators. <i>NeurIPS</i> (2023).</li>
+        <li>Du et al. &mdash; improving factuality via <b>multi-agent debate</b>. <i>ICML</i> (2024).</li>
+      </ul>
+      <div class="srch">Opentrons platform</div>
+      <ul class="refs">
+        <li>Opentrons <b>Python Protocol API</b> and the <b>analyze</b> engine &mdash; docs.opentrons.com (pinned: opentrons 8.8.2, apiLevel 2.20).</li>
+        <li>OpentronsAI (protocol-from-a-prompt); <span class="mono">opentrons-mcp</span> and <span class="mono">opentrons-python-api</span> &mdash; Runs-API prior art.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap footrow">
+  <span>Paper2Protocol &middot; LABA pillar, Lab AI-OS</span>
+  <span>opentrons 8.8.2 &middot; apiLevel 2.20 &middot; verified live with Gemini &middot; <span style="color:var(--pass)">dispatch succeeded</span></span>
+</div></footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= WebGL background ================= */
+  (function(){
+    var c=document.getElementById("bg");
+    var gl=c.getContext("webgl")||c.getContext("experimental-webgl");
+    if(!gl){ c.style.background="radial-gradient(1000px 600px at 70% -10%,#0c1c1e,#070b0d)"; return; }
+    var vs="attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}";
+    var fs=[
+      "precision highp float;uniform vec2 R;uniform float T;",
+      "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+      "float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+      "return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}",
+      "float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*noise(p);p*=2.03;a*=0.5;}return s;}",
+      "void main(){vec2 uv=(gl_FragCoord.xy-0.5*R)/R.y;float t=T*0.05;vec2 q=uv*1.5;",
+      "vec2 w=vec2(fbm(q+vec2(0.0,t)),fbm(q+vec2(3.1,-t)));float f=fbm(q+1.4*w);",
+      "vec3 base=vec3(0.02,0.05,0.06),teal=vec3(0.05,0.5,0.46),hi=vec3(0.16,0.9,0.78);",
+      "vec3 col=mix(base,teal,smoothstep(0.25,0.75,f));col+=hi*pow(smoothstep(0.55,0.96,f),2.0)*0.5;",
+      "col*=smoothstep(1.3,0.15,length(uv))*0.7+0.12;col*=0.5;gl_FragColor=vec4(col,1.0);}"
+    ].join("\n");
+    function sh(t,src){var o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);
+      if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))return null;return o;}
+    var v=sh(gl.VERTEX_SHADER,vs),fSh=sh(gl.FRAGMENT_SHADER,fs);
+    if(!v||!fSh){c.style.display="none";return;}
+    var pr=gl.createProgram();gl.attachShader(pr,v);gl.attachShader(pr,fSh);gl.linkProgram(pr);
+    if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){c.style.display="none";return;}
+    gl.useProgram(pr);
+    var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    var loc=gl.getAttribLocation(pr,"p");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    var uR=gl.getUniformLocation(pr,"R"),uT=gl.getUniformLocation(pr,"T");
+    function size(){var d=Math.min(devicePixelRatio||1,1.4);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height);}
+    size();addEventListener("resize",size);
+    var t0=performance.now();
+    function draw(){var t=(performance.now()-t0)/1000;gl.uniform2f(uR,c.width,c.height);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);if(!reduce)requestAnimationFrame(draw);}
+    draw();
+  })();
+
+  /* ================= plate ================= */
+  var plate=document.getElementById("plate"), wells=[];
+  for(var i=0;i<24;i++){var w=document.createElement("i");plate.appendChild(w);wells.push(w);}
+  function fillPlate(){wells[1].className="f15";wells[2].className="f25";}
+  function clearPlate(){for(var i=0;i<24;i++)wells[i].className="";}
+
+  /* ================= pipeline canvas (connectors + particles) ================= */
+  var canvas=document.getElementById("flow"),ctx=canvas.getContext("2d");
+  var frame=document.getElementById("frame"),nodesEl=document.getElementById("nodes");
+  var nodeEls=[].slice.call(document.querySelectorAll(".node"));
+  var pts=[],cons=[],dpr=Math.min(devicePixelRatio||1,2),particles=[];
+  function geometry(){
+    var fr=frame.getBoundingClientRect();
+    if(canvas.width!==Math.round(fr.width*dpr)){canvas.width=fr.width*dpr;canvas.height=fr.height*dpr;
+      canvas.style.width=fr.width+"px";canvas.style.height=fr.height+"px";}
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    pts=nodeEls.map(function(n){var r=n.getBoundingClientRect();
+      return {x:r.left-fr.left+r.width/2,y:r.top-fr.top+r.height/2,left:r.left-fr.left,right:r.right-fr.left,top:r.top-fr.top,bottom:r.bottom-fr.top};});
+    cons=[];for(var i=0;i<pts.length-1;i++){var a=pts[i],b=pts[i+1];
+      cons.push(Math.abs(a.y-b.y)<24?{x1:a.right,y1:a.y,x2:b.left,y2:b.y}:{x1:a.x,y1:a.bottom,x2:b.x,y2:b.top});}
+  }
+  function spawn(seg,color){if(seg)particles.push({seg:seg,t:0,color:color,sp:0.009+Math.random()*0.01});}
+  function burst(i){if(cons[i])for(var k=0;k<5;k++)(function(kk){setTimeout(function(){spawn(cons[i],"#34e3cc");},kk*60);})(k);}
+  function repairArc(){if(pts.length<5)return;var a=pts[4],b=pts[2];
+    for(var k=0;k<9;k++)(function(){setTimeout(function(){particles.push({seg:{x1:a.x,y1:a.top,x2:b.x,y2:b.top,arc:1},t:0,color:"#ff6b6b",sp:0.022});},k*60);})();}
+  var amb=0;
+  function tick(){
+    geometry();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(var i=0;i<cons.length;i++){var c=cons[i];var g=ctx.createLinearGradient(c.x1,c.y1,c.x2,c.y2);
+      g.addColorStop(0,"rgba(52,227,204,.30)");g.addColorStop(1,"rgba(52,227,204,.06)");
+      ctx.strokeStyle=g;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);ctx.stroke();}
+    if(pts.length>4){var a=pts[4],b=pts[2];ctx.strokeStyle="rgba(255,107,107,.16)";ctx.lineWidth=1.1;ctx.setLineDash([4,5]);
+      ctx.beginPath();ctx.moveTo(a.x,a.top);ctx.quadraticCurveTo((a.x+b.x)/2,a.top-54,b.x,b.top);ctx.stroke();ctx.setLineDash([]);}
+    amb++;if(amb%24===0&&cons.length)spawn(cons[Math.floor(Math.random()*cons.length)],Math.random()<0.5?"#63a2ff":"#ffb45c");
+    for(var p=particles.length-1;p>=0;p--){var pa=particles[p];pa.t+=pa.sp;if(pa.t>=1){particles.splice(p,1);continue;}
+      var s=pa.seg,x,y;
+      if(s.arc){var u=pa.t,mx=(s.x1+s.x2)/2,my=Math.min(s.y1,s.y2)-54;
+        x=(1-u)*(1-u)*s.x1+2*(1-u)*u*mx+u*u*s.x2;y=(1-u)*(1-u)*s.y1+2*(1-u)*u*my+u*u*s.y2;}
+      else{x=s.x1+(s.x2-s.x1)*pa.t;y=s.y1+(s.y2-s.y1)*pa.t;}
+      ctx.globalAlpha=1-Math.abs(pa.t-0.5)*1.4;ctx.fillStyle=pa.color;ctx.shadowColor=pa.color;ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(x,y,2.4,0,7);ctx.fill();ctx.shadowBlur=0;ctx.globalAlpha=1;}
+    requestAnimationFrame(tick);
+  }
+
+  /* ================= 3D orbit (mouse + idle sway) ================= */
+  var tx=0,ty=0,idle=0;
+  function orbit(){
+    idle+=0.008;
+    var rx=(-ty*7)+(reduce?0:Math.sin(idle)*1.6);
+    var ry=(tx*9)+(reduce?0:Math.cos(idle*0.8)*2.2);
+    nodesEl.style.transform="rotateX("+rx.toFixed(2)+"deg) rotateY("+ry.toFixed(2)+"deg)";
+    if(!reduce)requestAnimationFrame(orbit);
+  }
+  frame.addEventListener("pointermove",function(e){var r=frame.getBoundingClientRect();
+    tx=(e.clientX-r.left)/r.width-0.5; ty=(e.clientY-r.top)/r.height-0.5;
+    frame.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");
+    frame.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%");});
+  frame.addEventListener("pointerleave",function(){tx=0;ty=0;});
+
+  /* ================= console + run sequence ================= */
+  var con=document.getElementById("console");
+  function log(html,cls){var d=document.createElement("div");d.className="ln"+(cls?" "+cls:"");d.innerHTML=html;con.appendChild(d);
+    while(con.children.length>5)con.removeChild(con.firstChild);requestAnimationFrame(function(){d.classList.add("show");});}
+  function setNode(i,cls){nodeEls[i].classList.remove("active","pass","fail");if(cls)nodeEls[i].classList.add(cls);}
+  function sleep(ms){return new Promise(function(r){setTimeout(r,reduce?0:ms);});}
+  var playing=false;
+  async function playRun(){
+    if(playing)return;playing=true;
+    nodeEls.forEach(function(n){n.classList.remove("active","pass","fail");});
+    con.innerHTML="";clearPlate();
+    var btn=document.getElementById("play");btn.innerHTML="&#9679; running&#8230;";btn.disabled=true;
+    setNode(0,"active");log('<span class="t">paper</span> ingested &mdash; E. coli chemotaxis / Pen-Strep methods');await sleep(760);
+    setNode(0,"pass");setNode(1,"active");burst(0);log('<span class="t">extract</span> &rarr; structured spec (IR) &middot; ambiguities flagged');await sleep(820);
+    setNode(1,"pass");setNode(2,"active");burst(1);log('<span class="t">gemini</span> writes draft 1 &hellip;');await sleep(950);
+    setNode(2,"pass");setNode(3,"active");burst(2);log('draft 1 emitted &rarr; <span class="dim">protocol.py</span>');await sleep(650);
+    setNode(3,"pass");setNode(4,"active");burst(3);log('<span class="t">verify</span> &middot; static &rarr; analyze &rarr; conformance &hellip;');await sleep(900);
+    setNode(4,"fail");log('<span class="bad">&#10007; static</span> declared gate G1 not found as a protocol.pause()',"bad");await sleep(1050);
+    repairArc();setNode(4,"");setNode(3,"");setNode(2,"active");log('<span class="bad">&#8634; repair</span> &mdash; feedback &rarr; Gemini regenerates',"bad");await sleep(1150);
+    setNode(2,"pass");setNode(3,"pass");setNode(4,"active");burst(2);burst(3);log('draft 2 adds <span class="t">protocol.pause("G1")</span>, re-verifying &hellip;');await sleep(950);
+    setNode(4,"pass");log('<span class="ok">&#10003; static &#10003; analyze (33 cmds) &#10003; conformance</span> &mdash; 0/15/25% v/v',"ok");fillPlate();await sleep(950);
+    setNode(5,"active");burst(4);log('<span class="t">dispatch</span> &rarr; OT-2 &middot; upload &rarr; run &rarr; play &hellip;');await sleep(1000);
+    setNode(5,"pass");log('<span class="ok">&#10003; RUN SUCCEEDED</span> on the OT-2 (simulated)',"ok");await sleep(450);
+    log('<span class="dim">CONVERGED in 2 iterations &middot; dispatched &middot; exported</span>',"dim");
+    btn.innerHTML="&#9654; Replay the run";btn.disabled=false;playing=false;
+  }
+  document.getElementById("play").addEventListener("click",function(){
+    document.getElementById("pipeline").scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});
+    setTimeout(playRun,reduce?0:460);});
+
+  /* ================= reveals + download ================= */
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{threshold:.16});
+  document.querySelectorAll(".reveal").forEach(function(el){io.observe(el);});
+  document.getElementById("dl").addEventListener("click",function(){
+    var src=document.getElementById("code").textContent;
+    var blob=new Blob([src],{type:"text/x-python"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="penstrep_dilution_ot2.py";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);});
+
+  /* ================= boot ================= */
+  function staticFinal(){nodeEls.forEach(function(n){n.classList.add("pass");});fillPlate();
+    log('<span class="ok">&#10003; CONVERGED in 2 iterations</span> &middot; dispatched &middot; RUN SUCCEEDED',"ok");}
+  geometry();
+  if(!reduce){
+    requestAnimationFrame(tick);requestAnimationFrame(orbit);
+    var played=false;
+    var pio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!played){played=true;setTimeout(playRun,350);}});},{threshold:.4});
+    pio.observe(frame);
+  }else{staticFinal();}
+  new ResizeObserver(geometry).observe(frame);
+})();
+</script>

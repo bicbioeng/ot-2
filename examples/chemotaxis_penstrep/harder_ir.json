@@ -1,0 +1,91 @@
+{
+  "protocol_name": "PenStrep dilution + external-caster handoff gate",
+  "paper": {
+    "title": "Efficacy of Penicillin-Streptomycin as a Repellent on Chemotaxis Behavior of Escherichia coli",
+    "assay_type": "negative_chemotaxis_drug_releasing_agar",
+    "readout": "10x live microscopy (trackpy) + Tecan M200 OD600 spatial reads"
+  },
+  "api_level": "2.20",
+  "robot_type": "OT-2",
+  "automation_partition": {
+    "ROBOT": [
+      "Prepare PenStrep dilution series 0 / 15 / 25 % v/v in LB",
+      "OD-based culture density normalization (operator-supplied OD600)"
+    ],
+    "GATE": [
+      "G1: hand off aqueous reagents to the external agar caster (human / other robot)",
+      "G2: operator measures + enters culture OD600 (runtime parameter)"
+    ],
+    "OFF_DECK": [
+      "melt 8% agar @ 80 C",
+      "mix agar + PenStrep 50:50 and cast the partial-solidification gradient",
+      "add diluted culture to the plate",
+      "seal + incubate 37 C",
+      "10x live microscopy",
+      "Tecan M200 OD600 spatial reads"
+    ]
+  },
+  "dilution": {
+    "stock_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A1",
+      "liquid": "PenStrep 100x stock",
+      "stock_conc": {
+        "penicillin_U_per_mL": 10000,
+        "streptomycin_ug_per_mL": 10000
+      }
+    },
+    "diluent_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A2",
+      "liquid": "LB broth"
+    },
+    "dest_labware": "corning_24_wellplate_3.4ml_flat",
+    "targets": [
+      {
+        "well": "A1",
+        "vv": 0.0
+      },
+      {
+        "well": "A2",
+        "vv": 0.15
+      },
+      {
+        "well": "A3",
+        "vv": 0.25
+      }
+    ],
+    "total_vol_ul": 200,
+    "tolerance_vv": 0.01
+  },
+  "assertions": [
+    {
+      "check": "penstrep_vv_set_equals",
+      "value": [
+        0.0,
+        0.15,
+        0.25
+      ]
+    },
+    {
+      "check": "new_tip_always_between_destinations"
+    },
+    {
+      "check": "no_agar_pipetting"
+    },
+    {
+      "check": "final_concentration_bound_to_named_stock"
+    }
+  ],
+  "open_clarifications": [
+    "concentration basis: 15/25 % v/v of 10,000 U/mL stock vs the abstract's 1500/2500/10000 U/mL framing",
+    "assay plate: paper text says 12-well, abstract says 24-well (Fig 1 shows 2 wells)"
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "kind": "pause",
+      "prompt": "Hand off the prepared PenStrep reagents to the external agar caster; tap Resume when the plate returns."
+    }
+  ]
+}
