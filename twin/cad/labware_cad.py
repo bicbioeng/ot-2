@@ -7,7 +7,7 @@ to actually subtract the wells, so the cavities are real geometry that catches l
 shadow like the physical plate.
 
 Outputs (labware LOCAL frame: origin at the labware corner, z=0 at the slot surface):
-    lw_<slot>_<loadname>.stl
+    lw_<loadname>.stl   (keyed by load name so protocols share the asset dir)
 plus lw_meta.json describing what was cut, for the Isaac scene to place liquids correctly.
 """
 import os
@@ -40,7 +40,9 @@ def cyl(radius, height, z0, x, y, sections=SEG):
 
 
 a = json.loads(open(LEDGER).read())
-meta = {}
+_meta_path = os.path.join(ASSETS, "lw_meta.json")
+meta = json.load(open(_meta_path)) if os.path.exists(_meta_path) else {}
+print(f"existing labware entries: {[k for k in meta if k != 'tube_model']}")
 for cmd in a.get("commands", []):
     if cmd.get("commandType") != "loadLabware":
         continue
@@ -88,10 +90,10 @@ for cmd in a.get("commands", []):
     print(f"  -> faces={len(cut.faces)} watertight={cut.is_watertight} "
           f"volume={cut.volume/1000:.1f} cm^3")
 
-    path = os.path.join(ASSETS, f"lw_{slot}_{load}.stl")
+    path = os.path.join(ASSETS, f"lw_{load}.stl")
     cut.export(path)
 
-    meta[slot] = {
+    meta[load] = {
         "loadName": load, "kind": kind, "mesh": os.path.basename(path),
         "dims": [X, Y, Z], "body_h": body_h,
         "wells": {n: {"x": w["x"], "y": w["y"], "z": w["z"], "depth": w["depth"],
@@ -99,9 +101,9 @@ for cmd in a.get("commands", []):
                   for n, w in wells.items()},
     }
     if kind == "tiprack":
-        meta[slot]["tipLength"] = p.get("tipLength")
+        meta[load]["tipLength"] = p.get("tipLength")
 
-json.dump(meta, open(os.path.join(ASSETS, "lw_meta.json"), "w"), indent=2)
+json.dump(meta, open(_meta_path, "w"), indent=2)
 print("\nwrote lw_meta.json ->", ASSETS)
 
 
@@ -112,12 +114,14 @@ def to_pv(tm):
 
 
 for slot, m in meta.items():
+    if not isinstance(m, dict) or "kind" not in m or "mesh" not in m:
+        continue
     tm = trimesh.load(os.path.join(ASSETS, m["mesh"]))
     p = pv.Plotter(off_screen=True, window_size=(900, 680))
     p.set_background("white")
     p.add_mesh(to_pv(tm), color="#e8ecf0", smooth_shading=False, show_edges=False, specular=0.4)
     p.add_axes(line_width=3)
     p.camera_position = "iso"
-    p.screenshot(os.path.join(OUT, f"70_lw_{slot}_{m['kind']}.png"))
+    p.screenshot(os.path.join(OUT, f"70_lw_{m['kind']}_{slot[:22]}.png"))
     p.close()
-    print(f"  wrote 70_lw_{slot}_{m['kind']}.png")
+    print(f"  wrote 70_lw_{m['kind']}_{slot[:22]}.png")

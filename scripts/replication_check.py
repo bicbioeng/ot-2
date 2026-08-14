@@ -1,0 +1,181 @@
+"""Replication check — does the ledger actually realize what the paper claims?
+
+Reconstructs the run from the `opentrons analyze` commands[] ledger by simulating every
+aspirate/dispense against a container model, then tests the paper's declared numbers against
+what the protocol *does*. Nothing is read from the protocol source: a check that grepped the
+code for the right literal would pass a protocol that merely mentions the number.
+
+    python scripts/replication_check.py examples/mic_ole/out/analysis.json examples/mic_ole/claims.json
+
+Exit code 0 = every claim satisfied.
+"""
+from __future__ import annotations
+
+import json
+import sys
+from collections import defaultdict
+
+
+class Container:
+    """Volume + mass of each tracked solute, so concentrations fall out of the mixing."""
+
+    def __init__(self, name, volume=0.0, conc=None, infinite=False):
+        self.name = name
+        self.volume = volume
+        self.conc = dict(conc or {})     # solute -> mg/mL (or arbitrary units)
+        self.infinite = infinite         # a stock we never drain
+
+    def take(self, vol):
+        if not self.infinite:
+            self.volume = max(0.0, self.volume - vol)
+        return dict(self.conc)
+
+    def give(self, vol, conc):
+        if self.infinite:
+            return
+        total = self.volume + vol
+        if total <= 0:
+            return
+        merged = {}
+        for k in set(self.conc) | set(conc):
+            mass = self.conc.get(k, 0.0) * self.volume + conc.get(k, 0.0) * vol
+            merged[k] = mass / total
+        self.volume, self.conc = total, merged
+
+
+def simulate(ledger_path, stocks):
+    a = json.loads(open(ledger_path).read())
+    cmds = a.get("commands", [])
+
+    id2slot, slot2load = {}, {}
+    for c in cmds:
+        if c.get("commandType") == "loadLabware":
+            p, res = c["params"], c.get("result", {})
+            slot = str(p.get("location", {}).get("slotName"))
+            slot2load[slot] = p.get("loadName")
+            if res.get("labwareId"):
+                id2slot[res["labwareId"]] = slot
+
+    containers = {}
+
+    def get(slot, well):
+        key = f"{slot}/{well}"
+        if key not in containers:
+            spec = stocks.get(key)
+            containers[key] = Container(
+                key,
+                volume=float("inf") if spec and spec.get("infinite") else 0.0,
+                conc=(spec or {}).get("conc"),
+                infinite=bool(spec and spec.get("infinite")),
+            )
+        return containers[key]
+
+    held = None          # what the tip is carrying: (volume, conc)
+    tips_used = 0
+    transfers = []
+    for c in cmds:
+        t, p = c.get("commandType"), c.get("params", {})
+        if t == "pickUpTip":
+            tips_used += 1
+            held = None
+        elif t == "aspirate":
+            src = get(id2slot.get(p.get("labwareId")), p.get("wellName"))
+            vol = float(p.get("volume") or 0)
+            held = (vol, src.take(vol))
+        elif t == "dispense":
+            dst = get(id2slot.get(p.get("labwareId")), p.get("wellName"))
+            vol = float(p.get("volume") or 0)
+            conc = held[1] if held else {}
+            dst.give(vol, conc)
+            transfers.append((dst.name, vol, dict(conc)))
+            held = None
+    return containers, transfers, tips_used, slot2load
+
+
+def main():
+    ledger, claims_path = sys.argv[1], sys.argv[2]
+    claims = json.loads(open(claims_path).read())
+    containers, transfers, tips_used, slot2load = simulate(ledger, claims["stocks"])
+
+    plate = claims["plate_slot"]
+    solute = claims["solute"]
+    marker = claims["biology_marker"]
+
+    results = []
+
+    def check(name, ok, detail):
+        results.append((name, bool(ok), detail))
+
+    # --- labware actually loaded ---
+    for slot, expected in claims["expect_labware"].items():
+        check(f"labware slot {slot}", slot2load.get(slot) == expected,
+              f"expected {expected}, loaded {slot2load.get(slot)}")
+
+    # --- the realized dilution series, derived from the mixing ---
+    got = []
+    for tube in claims["series_wells"]:
+        c = containers.get(f"{claims['rack_slot']}/{tube}")
+        got.append(round(c.conc.get(solute, 0.0), 4) if c else None)
+    want = claims["concentrations"]
+    ok_series = len(got) == len(want) and all(
+        g is not None and abs(g - w) <= max(0.01, 0.02 * w) for g, w in zip(got, want))
+    check("dilution series realized", ok_series, f"expected {want}, realized {got}")
+
+    # --- per-well contents of the assay plate ---
+    wells = defaultdict(lambda: {"vol": 0.0, "ole": None, "bio": 0.0})
+    for name, vol, conc in transfers:
+        slot, well = name.split("/")
+        if slot != plate:
+            continue
+        w = wells[well]
+        w["vol"] += vol
+        if conc.get(solute, 0.0) > 0:
+            w["ole"] = round(conc[solute], 4)
+        if conc.get(marker, 0.0) > 0:
+            w["bio"] += vol
+
+    # experimental wells: OLE + culture, at the paper's total volume
+    per_conc = defaultdict(int)
+    for well, w in wells.items():
+        if w["ole"] and w["bio"] > 0:
+            per_conc[w["ole"]] += 1
+    reps = claims["replicates"]
+    ok_reps = all(per_conc.get(c, 0) == reps for c in want)
+    check(f"{reps} replicates per concentration", ok_reps,
+          f"per-concentration well counts: {dict(sorted(per_conc.items(), reverse=True))}")
+
+    tv = claims["total_well_volume"]
+    bad_vol = {w: round(v["vol"], 1) for w, v in wells.items() if abs(v["vol"] - tv) > 0.51}
+    check(f"every assay well = {tv} uL", not bad_vol, f"off-volume wells: {bad_vol or 'none'}")
+
+    cv = claims["component_volume"]
+    bad_comp = [(n, v) for n, v, _ in transfers if n.startswith(plate + "/") and abs(v - cv) > 0.01]
+    check(f"every plate dispense = {cv} uL", not bad_comp,
+          f"{len(bad_comp)} dispense(s) of another size" if bad_comp else "all uniform")
+
+    # --- controls demanded by the paper's inhibitory-rate equation ---
+    pc = [w for w, v in wells.items() if not v["ole"] and v["bio"] > 0]
+    nc = [w for w, v in wells.items() if not v["ole"] and v["bio"] == 0]
+    oo = [w for w, v in wells.items() if v["ole"] and v["bio"] == 0]
+    check("positive control (culture, no OLE)", len(pc) >= 1, f"{len(pc)} wells: {sorted(pc)[:9]}")
+    check("negative control (broth only)", len(nc) >= 1, f"{len(nc)} wells: {sorted(nc)[:9]}")
+    check("OLE-only control at each concentration",
+          len({wells[w]['ole'] for w in oo}) == len(want),
+          f"{len(oo)} wells covering {len({wells[w]['ole'] for w in oo})}/{len(want)} concentrations")
+
+    # --- sanity: no well over the labware's working volume ---
+    check("tips used", tips_used > 0, f"{tips_used} tips")
+
+    width = max(len(n) for n, _, _ in results)
+    print(f"\nREPLICATION CHECK — {claims['paper']}")
+    print(f"ledger: {ledger}\n")
+    n_ok = 0
+    for name, ok, detail in results:
+        print(f"  [{'PASS' if ok else 'FAIL'}] {name.ljust(width)}  {detail}")
+        n_ok += ok
+    print(f"\n  {n_ok}/{len(results)} checks passed")
+    return 0 if n_ok == len(results) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

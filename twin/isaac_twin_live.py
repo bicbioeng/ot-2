@@ -50,8 +50,11 @@ ap.add_argument("--fps", type=float, default=60.0)
 ap.add_argument("--max-frames", type=int, default=1100)
 ap.add_argument("--speed", type=float, default=1.0,
                 help="playback rate; 0.25 = quarter speed. Live-adjustable via out/speed.json")
-ap.add_argument("--liquid-gain", type=float, default=9.0,
-                help="visual exaggeration of liquid height (1.0 = true physical scale)")
+ap.add_argument("--liquid-gain", default="auto",
+                help="visual exaggeration of liquid height: a number, or 'auto' (default) to "
+                     "scale PER LABWARE so the run's largest fill reads ~55%% of well depth. "
+                     "A fixed gain cannot serve both a 12-well plate (200 uL = 0.53 mm) and a "
+                     "96-well plate (200 uL = 5.81 mm) — one is invisible, the other saturates.")
 ap.add_argument("--tube-start", type=float, default=8000.0, help="uL preloaded in each source tube")
 ap.add_argument("--once", action="store_true")
 ap.add_argument("--validate", action="store_true")
@@ -118,7 +121,8 @@ TIP_LEN = 52.0             # p300 tip
 BOTTOM_CLEARANCE = 1.0     # the protocol's own well_bottom_clearance (aspirate & dispense)
 IMMERSION = 3.0            # how far below the liquid surface the tip dips to aspirate
 CONE_H = 20.0              # conical bottom of a 15 mL Falcon
-GAIN = max(0.05, args.liquid_gain)
+AUTO_GAIN = str(args.liquid_gain).strip().lower() == "auto"
+GAIN = 1.0 if AUTO_GAIN else max(0.05, float(args.liquid_gain))
 
 
 # --------------------------- ledger ---------------------------
@@ -332,7 +336,7 @@ def labware_origin(slot):
 for slot, g in geoms.items():
     ox, oy, oz = labware_origin(slot)
     low = g.load_name.lower()
-    meta = LW.get(slot, {})
+    meta = LW.get(g.load_name, {})   # keyed by loadName: protocols share assets
     mesh_file = os.path.join(args.labware, meta.get("mesh", "")) if meta.get("mesh") else ""
     kind = meta.get("kind") or ("tuberack" if "tuberack" in low
                                 else "tiprack" if (g.is_tiprack or "tiprack" in low) else "plate")
@@ -399,8 +403,25 @@ for slot, g in geoms.items():
                                           "base": base, "depth": wd_, "x": px, "y": py}
             WELLGEO[f"{slot}/{well}"] = (px, py, base, wd_)
 
+# --- per-labware liquid gain -------------------------------------------------
+# Work out the largest volume this protocol puts in any single plate well, then scale so it
+# renders at ~55% of the well depth. Keeps a 0.5 mm film visible without saturating a well
+# that is already legibly full.
+_max_vol = {}
+for _s in steps:
+    if _s[0] == "dispense":
+        _k = f"{_s[1]}/{_s[2]}"
+        if _k in well_liq:
+            _max_vol[_k] = _max_vol.get(_k, 0.0) + float(_s[3] or 0)
+for _k, _w in well_liq.items():
+    if not AUTO_GAIN:
+        _w["gain"] = GAIN; continue
+    _v = _max_vol.get(_k, 0.0)
+    _ht = h_flat(_v, _w["r"]) if _v > 0 else 0.0
+    _w["gain"] = 1.0 if _ht <= 0 else max(1.0, min(25.0, 0.55 * _w["depth"] / _ht))
+_g = sorted({round(w.get("gain", GAIN), 2) for w in well_liq.values()})
 log(f"labware built: {len(well_liq)} plate wells, {len(tube_liq)} source tubes (UNCAPPED), "
-    f"{len(rack_tips)} tips in rack")
+    f"{len(rack_tips)} tips in rack; liquid gain {'auto' if AUTO_GAIN else 'fixed'} -> {_g}")
 
 # ---------------- machine ----------------
 NOZZLE = [179.85, 112.17, 225.27]
@@ -637,7 +658,7 @@ def set_tube(key, vol):
 def set_well(key, vol, rgb):
     w = well_liq[key]
     h_true = h_flat(vol, w["r"])
-    h = min(w["depth"] - 0.4, h_true * GAIN)
+    h = min(w["depth"] - 0.4, h_true * w.get("gain", GAIN))
     if vol <= 0.01:
         show(w["prim"], False); return
     w["prim"].GetHeightAttr().Set(float(max(0.2, h)))
@@ -726,9 +747,12 @@ class State:
 
 state = State()
 _r0 = list(well_liq.values())[0]["r"] if well_liq else 11.4
-log(f"liquid model: 1 uL = 1 mm^3. 200 uL in a plate well = {h_flat(200, _r0):.2f} mm true "
-    f"({h_flat(200, _r0)*GAIN:.2f} mm shown at {GAIN}x). Tubes start at {args.tube_start:.0f} uL "
-    f"(surface {h_conical(args.tube_start, 7.45):.1f} mm above the tube tip).")
+_w0 = list(well_liq.values())[0] if well_liq else None
+_g0 = _w0.get("gain", GAIN) if _w0 else GAIN
+_vmax0 = max(_max_vol.values()) if _max_vol else 200.0
+log(f"liquid model: 1 uL = 1 mm^3. Largest well fill {_vmax0:.0f} uL = {h_flat(_vmax0, _r0):.2f} mm true, "
+    f"shown {h_flat(_vmax0, _r0)*_g0:.2f} mm at {_g0:.2f}x in a {_w0['depth'] if _w0 else 0:.1f} mm well. "
+    f"Tubes start at {args.tube_start:.0f} uL (surface {h_conical(args.tube_start, 7.45):.1f} mm).")
 
 if args.validate:
     # exercise the liquid system for real before declaring the scene good: every op kind,
