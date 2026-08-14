@@ -129,8 +129,10 @@ GAIN = 1.0 if AUTO_GAIN else max(0.05, float(args.liquid_gain))
 def parse_ledger(path):
     a = json.loads(open(path).read())
     cmds = a.get("commands", [])
-    layout, slot_defs, id2slot = {}, {}, {}
+    layout, slot_defs, id2slot, pip_mount = {}, {}, {}, {}
     for c in cmds:
+        if c.get("commandType") == "loadPipette":
+            pip_mount[c.get("result", {}).get("pipetteId")] = c["params"].get("mount", "left")
         if c.get("commandType") == "loadLabware":
             p, res = c["params"], c.get("result", {})
             slot = str(p.get("location", {}).get("slotName"))
@@ -142,20 +144,21 @@ def parse_ledger(path):
     steps = []
     for c in cmds:
         t, p = c.get("commandType"), c.get("params", {})
+        m = pip_mount.get(p.get("pipetteId"), "left")
         if t == "pickUpTip":
-            steps.append(("pick", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), None))
+            steps.append(("pick", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), None, m))
         elif t == "aspirate":
-            steps.append(("aspirate", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), p.get("volume")))
+            steps.append(("aspirate", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), p.get("volume"), m))
         elif t == "dispense":
-            steps.append(("dispense", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), p.get("volume")))
+            steps.append(("dispense", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), p.get("volume"), m))
         elif t == "blowout":
             # the protocol blows out at the well TOP (wellLocation.origin == "top")
-            steps.append(("blowout", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), None))
+            steps.append(("blowout", id2slot.get(p.get("labwareId")), p.get("wellName", "A1"), None, m))
         elif t in ("dropTip", "dropTipInPlace"):
-            steps.append(("drop", TRASH_SLOT, "A1", None))
+            steps.append(("drop", TRASH_SLOT, "A1", None, m))
         elif t == "custom" and "DELAY" in str(p.get("legacyCommandType", "")):
             # protocol.delay(...) — e.g. the 15 min room-temp agar solidification
-            steps.append(("delay", None, p.get("legacyCommandText", "delay"), None))
+            steps.append(("delay", None, p.get("legacyCommandText", "delay"), None, "left"))
     return layout, slot_defs, steps
 
 
@@ -433,9 +436,16 @@ if os.path.exists(_pj):
 gantry = UsdGeom.Xform.Define(stage, "/World/gantry")
 carriage = UsdGeom.Xform.Define(stage, "/World/gantry/carriage")
 pipette = UsdGeom.Xform.Define(stage, "/World/gantry/carriage/pipette")
+pipette_r = UsdGeom.Xform.Define(stage, "/World/gantry/carriage/pipette_r")
 gantry_api = UsdGeom.XformCommonAPI(gantry)
 carriage_api = UsdGeom.XformCommonAPI(carriage)
 pipette_api = UsdGeom.XformCommonAPI(pipette)
+pipette_r_api = UsdGeom.XformCommonAPI(pipette_r)
+
+# Both mounts ride the same carriage — on a real OT-2 X and Y are shared and only Z is
+# independent per mount. Steps are driven through whichever mount the ledger says owns them.
+MOUNTS = {m for st in steps for m in [st[4] if len(st) > 4 else "left"]}
+NOZZLE_R = [212.82, 112.17, 225.27]
 
 have_cad = False
 if args.chassis:
@@ -447,6 +457,11 @@ if args.chassis:
         md, nd = add_mesh("/World/machine_deck", dp, (0.78, 0.80, 0.83)); bind(md, MAT["deck"])
         mc, nc = add_mesh("/World/gantry/carriage/mesh", cp, (0.28, 0.30, 0.34)); bind(mc, MAT["carr"])
         mp, np_ = add_mesh("/World/gantry/carriage/pipette/mesh", pp, (0.94, 0.95, 0.96)); bind(mp, MAT["pip"])
+        _pr = os.path.join(args.assets, "ot2_pipette_right.stl")
+        if "right" in MOUNTS and os.path.exists(_pr):
+            mpr, nr_ = add_mesh("/World/gantry/carriage/pipette_r/mesh", _pr, (0.94, 0.95, 0.96))
+            bind(mpr, MAT["pip"])
+            log(f"right-mount pipette loaded ({nr_} tris) — run uses mounts {sorted(MOUNTS)}")
         log(f"CAD machine: frame={nf} deck={nd} carriage={nc} pipette={np_} tris; nozzle={NOZZLE}")
         bm = pmeta.get("beam", {}); mb = pmeta.get("machine_bounds", [[-116, -93, -63], [508, 475, 599]])
         bz1 = bm.get("z1", 580.0); bz0 = max(bm.get("z0", 480.0), bz1 - 95)
@@ -532,7 +547,7 @@ def tube_surface_abs(key, vol):
 
 
 def work_xyz(i, step):
-    kind, slot, well, vol = step
+    kind, slot, well, vol = step[:4]
     if kind == "drop":
         # hold the tip over the OPEN bin, above its rim, and release
         return trash_pos[0], trash_pos[1], trash_pos[2] + 32.0
@@ -568,33 +583,34 @@ for slot, g in geoms.items():
     boxes.append((np.array([pos[0] + c[0] + d[0] / 2, pos[1] + c[1] + d[1] / 2, pos[2] + c[2] + d[2] / 2]),
                   np.array([d[0] / 2, d[1] / 2, d[2] / 2])))
 
-wps = [(cxd, cyd, travel_z, "home", None)]
+wps = [(cxd, cyd, travel_z, "home", None, "left")]
 for i, s in enumerate(steps):
     tx, ty, tz = targets[i]
     if not deck.reachable(tx, ty, slots):
         report["reachable_all"] = False
         report["reach_violations"].append({"step": f"{s[0]} {s[1]}:{s[2]}"})
     cx, cy, _ = wps[-1][:3]
-    wps += [(cx, cy, travel_z, "ascend", None), (tx, ty, travel_z, "move", None),
-            (tx, ty, tz, f"{s[0]} {s[2]}", s), (tx, ty, tz, "dwell", None),
-            (tx, ty, travel_z, "ascend", None)]
+    _m = s[4] if len(s) > 4 else "left"
+    wps += [(cx, cy, travel_z, "ascend", None, _m), (tx, ty, travel_z, "move", None, _m),
+            (tx, ty, tz, f"{s[0]} {s[2]}", s, _m), (tx, ty, tz, "dwell", None, _m),
+            (tx, ty, travel_z, "ascend", None, _m)]
 
 seg = [math.dist(wps[i - 1][:3], wps[i][:3]) for i in range(1, len(wps))]
 tot = sum(seg) or 1.0
 path = [wps[0]]
 for i in range(1, len(wps)):
-    ax, ay, az, _, _ = wps[i - 1]; bx, by, bz, lbl, op = wps[i]
+    ax, ay, az = wps[i - 1][:3]; bx, by, bz, lbl, op, wm = wps[i]
     n = max(2, round(seg[i - 1] / tot * max(150, args.max_frames)))
     for k in range(1, n + 1):
         t = k / n
         path.append((ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t,
-                     lbl if k == n else "", op if k == n else None))
+                     lbl if k == n else "", op if k == n else None, wm))
     if op is not None and op[0] == "delay":   # the agar solidification hold, made visible
-        path += [(bx, by, bz, "", None)] * 150
+        path += [(bx, by, bz, "", None, wm)] * 150
     elif lbl == "dwell":                      # hold at the action so it is watchable
-        path += [(bx, by, bz, "", None)] * 12
+        path += [(bx, by, bz, "", None, wm)] * 12
 
-for (x, y, z, lbl, op) in path:
+for (x, y, z, lbl, op, _wm) in path:
     p = np.array([x, y, z])
     if z > travel_z - 3.0:                       # transit height: nothing may be in the way
         best = 999.0
@@ -701,7 +717,7 @@ class State:
     def apply(self, op):
         if not op:
             return
-        kind, slot, well, vol = op
+        kind, slot, well, vol = op[:4]
         key = f"{slot}/{well}"
         v = float(vol or 0)
         if kind == "pick":
@@ -836,7 +852,7 @@ pass_no = 0
 fi = 0
 while True:
     pass_no += 1
-    for (x, y, z, lbl, op) in path:
+    for (x, y, z, lbl, op, wm) in path:
         t0 = time.time()
         fi += 1
         if fi % 30 == 0:                      # live speed control
@@ -847,13 +863,20 @@ while True:
             except Exception:
                 pass
         z_body = z + (TIP_LEN if state.tip else 0.0)
+        _nz = NOZZLE_R if wm == "right" else NOZZLE
         if have_cad:
-            gantry_api.SetTranslate(Gf.Vec3d(0.0, float(y - NOZZLE[1]), 0.0))
-            carriage_api.SetTranslate(Gf.Vec3d(float(x - NOZZLE[0]), 0.0, 0.0))
-            pipette_api.SetTranslate(Gf.Vec3d(0.0, 0.0, float(z_body - NOZZLE[2])))
+            gantry_api.SetTranslate(Gf.Vec3d(0.0, float(y - _nz[1]), 0.0))
+            carriage_api.SetTranslate(Gf.Vec3d(float(x - _nz[0]), 0.0, 0.0))
+            # only the active mount descends; the idle one stays parked up top
+            if wm == "right":
+                pipette_r_api.SetTranslate(Gf.Vec3d(0.0, 0.0, float(z_body - NOZZLE_R[2])))
+                pipette_api.SetTranslate(Gf.Vec3d(0.0, 0.0, 0.0))
+            else:
+                pipette_api.SetTranslate(Gf.Vec3d(0.0, 0.0, float(z_body - NOZZLE[2])))
+                pipette_r_api.SetTranslate(Gf.Vec3d(0.0, 0.0, 0.0))
         else:
-            pipette_api.SetTranslate(Gf.Vec3d(float(x - NOZZLE[0]), float(y - NOZZLE[1]),
-                                              float(z_body - NOZZLE[2])))
+            pipette_api.SetTranslate(Gf.Vec3d(float(x - _nz[0]), float(y - _nz[1]),
+                                              float(z_body - _nz[2])))
         if op:
             state.apply(op)
         sim.update()
