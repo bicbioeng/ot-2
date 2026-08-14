@@ -1,0 +1,51 @@
+[
+  {
+    "iteration": 1,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "apilevel_placement L2: apiLevel declared in BOTH metadata and requirements (must be exactly one)",
+      "new_tip_policy L13: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip=None)",
+      "new_tip_policy L15: transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip=None)"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 2,
+    "stage_reached": "analyze",
+    "passed": false,
+    "static_errors": [],
+    "analyze": {
+      "result": "not-ok",
+      "errors": [
+        "PythonException (code 4000) at line 13: KeyError: 'A7' | info: args=('A7',), traceback=  File \"/Users/sandesh/usd-projects/paper2protocol/.venv/lib/python3.10/site-packages/opentrons/protocols/execution/execute_python.py\", line 160, in exec_run\n    exec(\"run(__context)\", new_globs)\n\n  File \"<string>\", line 1, in <module>\n\n  File \"draft2.py\", line 13, in run\n\n  File \"/Users/sandesh/usd-projects/paper2protocol/.venv/lib/python3.10/site-packages/opentrons/protocol_api/labware.py\", line 505, in __getitem__\n    return self.wells_by_name()[key]\n, class=KeyError"
+      ]
+    },
+    "conformance_failures": []
+  },
+  {
+    "iteration": 3,
+    "stage_reached": "conformance",
+    "passed": false,
+    "static_errors": [],
+    "analyze": {
+      "result": "ok",
+      "errors": []
+    },
+    "conformance_failures": [
+      "well A3: realized 0.200 v/v (stock 40uL / total 200uL) vs target 0.250"
+    ]
+  },
+  {
+    "iteration": 4,
+    "stage_reached": "converged",
+    "passed": true,
+    "static_errors": [],
+    "analyze": {
+      "result": "ok",
+      "errors": []
+    },
+    "conformance_failures": []
+  }
+]

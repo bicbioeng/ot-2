@@ -1,0 +1,197 @@
+{
+  "paper": {
+    "title": "Efficacy of Penicillin-Streptomycin as a Repellent on Chemotaxis Behavior of Escherichia coli",
+    "assay_type": "negative_chemotaxis_drug_releasing_agar",
+    "readout": "10x live microscopy (trackpy) + Tecan M200 OD600 spatial reads"
+  },
+  "partition": {
+    "ROBOT": [
+      "Prepare PenStrep dilution series 0 / 15 / 25 % v/v in LB",
+      "OD-based culture density normalization (operator-supplied OD600)"
+    ],
+    "GATE": [
+      "G1: hand off aqueous reagents to the external agar caster (human / other robot)",
+      "G2: operator measures + enters culture OD600 (runtime parameter)"
+    ],
+    "OFF_DECK": [
+      "melt 8% agar @ 80 C",
+      "mix agar + PenStrep 50:50 and cast the partial-solidification gradient",
+      "add diluted culture to the plate",
+      "seal + incubate 37 C",
+      "10x live microscopy",
+      "Tecan M200 OD600 spatial reads"
+    ]
+  },
+  "clarifications": [
+    "concentration basis: 15/25 % v/v of 10,000 U/mL stock vs the abstract's 1500/2500/10000 U/mL framing",
+    "assay plate: paper text says 12-well, abstract says 24-well (Fig 1 shows 2 wells)"
+  ],
+  "status": "converged",
+  "reason": "all gates passed at iteration 4",
+  "iterations": [
+    {
+      "n": 1,
+      "label": "draft 1",
+      "note": "generator's first attempt",
+      "stage_reached": "static",
+      "stage_label": "STATIC checks",
+      "passed": false,
+      "static": [
+        {
+          "rule": "apilevel_placement",
+          "line": 2,
+          "message": "apiLevel declared in BOTH metadata and requirements (must be exactly one)",
+          "severity": "error"
+        },
+        {
+          "rule": "new_tip_policy",
+          "line": 13,
+          "message": "transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip=None)",
+          "severity": "error"
+        },
+        {
+          "rule": "new_tip_policy",
+          "line": 15,
+          "message": "transfer in a loop without new_tip='always' risks carryover between destinations (got new_tip=None)",
+          "severity": "error"
+        }
+      ],
+      "analyze": null,
+      "conformance": null
+    },
+    {
+      "n": 2,
+      "label": "draft 2",
+      "note": "regenerated after STATIC feedback (apiLevel + tip policy)",
+      "stage_reached": "analyze",
+      "stage_label": "opentrons analyze",
+      "passed": false,
+      "static": [],
+      "analyze": {
+        "result": "not-ok",
+        "n_commands": 30,
+        "errors": [
+          {
+            "root_type": "PythonException",
+            "line": 13,
+            "code": "4000",
+            "detail": "KeyError: 'A7'"
+          }
+        ]
+      },
+      "conformance": null
+    },
+    {
+      "n": 3,
+      "label": "draft 3",
+      "note": "regenerated after ANALYZE feedback (invalid well reference)",
+      "stage_reached": "conformance",
+      "stage_label": "CONFORMANCE (commands[] ledger)",
+      "passed": false,
+      "static": [],
+      "analyze": {
+        "result": "ok",
+        "n_commands": 30,
+        "errors": []
+      },
+      "conformance": {
+        "ok": false,
+        "checks": [
+          {
+            "name": "dilution[A1]",
+            "ok": true,
+            "detail": "well A1: realized 0.000 v/v (stock 0uL / total 200uL) vs target 0.000",
+            "expected": 0.0,
+            "found": 0.0
+          },
+          {
+            "name": "dilution[A2]",
+            "ok": true,
+            "detail": "well A2: realized 0.150 v/v (stock 30uL / total 200uL) vs target 0.150",
+            "expected": 0.15,
+            "found": 0.15
+          },
+          {
+            "name": "dilution[A3]",
+            "ok": false,
+            "detail": "well A3: realized 0.200 v/v (stock 40uL / total 200uL) vs target 0.250",
+            "expected": 0.25,
+            "found": 0.2
+          }
+        ]
+      }
+    },
+    {
+      "n": 4,
+      "label": "draft 4",
+      "note": "regenerated after CONFORMANCE feedback (25% dose)",
+      "stage_reached": "converged",
+      "stage_label": "CONVERGED",
+      "passed": true,
+      "static": [],
+      "analyze": {
+        "result": "ok",
+        "n_commands": 44,
+        "errors": []
+      },
+      "conformance": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "dilution[A1]",
+            "ok": true,
+            "detail": "well A1: realized 0.000 v/v (stock 0uL / total 200uL) vs target 0.000",
+            "expected": 0.0,
+            "found": 0.0
+          },
+          {
+            "name": "dilution[A2]",
+            "ok": true,
+            "detail": "well A2: realized 0.150 v/v (stock 30uL / total 200uL) vs target 0.150",
+            "expected": 0.15,
+            "found": 0.15
+          },
+          {
+            "name": "dilution[A3]",
+            "ok": true,
+            "detail": "well A3: realized 0.250 v/v (stock 50uL / total 200uL) vs target 0.250",
+            "expected": 0.25,
+            "found": 0.25
+          }
+        ]
+      }
+    }
+  ],
+  "realized_concentrations": [
+    {
+      "well": "A1",
+      "vv": 0.0,
+      "conc": {
+        "penicillin_U_per_mL": 0.0,
+        "streptomycin_ug_per_mL": 0.0
+      }
+    },
+    {
+      "well": "A2",
+      "vv": 0.15,
+      "conc": {
+        "penicillin_U_per_mL": 1500.0,
+        "streptomycin_ug_per_mL": 1500.0
+      }
+    },
+    {
+      "well": "A3",
+      "vv": 0.25,
+      "conc": {
+        "penicillin_U_per_mL": 2500.0,
+        "streptomycin_ug_per_mL": 2500.0
+      }
+    }
+  ],
+  "engine": {
+    "opentrons_version": "8.8.2",
+    "python_version": "3.10.20",
+    "max_apiLevel": "2.27",
+    "invocation": "python -m opentrons.cli analyze --json-output - [--check] [--rtp-values '{...}'] PROTOCOL.py [labware.json ...]"
+  }
+}

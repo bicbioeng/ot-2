@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "name": "dilution[A1]",
+      "ok": true,
+      "detail": "well A1: realized 0.000 v/v (stock 0uL / total 200uL) vs target 0.000",
+      "expected": 0.0,
+      "found": 0.0
+    },
+    {
+      "name": "dilution[A2]",
+      "ok": true,
+      "detail": "well A2: realized 0.150 v/v (stock 30uL / total 200uL) vs target 0.150",
+      "expected": 0.15,
+      "found": 0.15
+    },
+    {
+      "name": "dilution[A3]",
+      "ok": true,
+      "detail": "well A3: realized 0.250 v/v (stock 50uL / total 200uL) vs target 0.250",
+      "expected": 0.25,
+      "found": 0.25
+    }
+  ]
+}

@@ -6,8 +6,12 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-# generated run outputs (keep captured/ golden fixtures, ignore transient runs)
-examples/**/out/
+# Run artefacts under examples/**/out/ ARE the deliverables — every generated
+# protocol.py, its analysis.json ledger, conformance and signoff — and they are
+# small (<1 MB total, no binaries). They are tracked deliberately.
+# Only genuinely transient media is excluded:
+examples/**/out/**/*.mp4
+examples/**/out/**/*.png
 .uv/
 uv.lock
 
@@ -16,8 +20,5 @@ uv.lock
 twin/cad/out/
 # transient twin renders (mp4s, frame dumps, reports)
 twin/out/
-# but the reference example's ledger IS the input the twin runs on — keep it
-!examples/chemotaxis_prism/out/
-!examples/chemotaxis_prism/out/analysis.json
 __pycache__/
 .DS_Store

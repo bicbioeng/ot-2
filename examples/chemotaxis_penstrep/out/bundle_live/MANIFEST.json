@@ -1,0 +1,50 @@
+{
+  "status": "converged",
+  "reason": "all gates passed at iteration 1",
+  "iterations": 1,
+  "paper": {
+    "title": "Efficacy of Penicillin-Streptomycin as a Repellent on Chemotaxis Behavior of Escherichia coli",
+    "assay_type": "negative_chemotaxis_drug_releasing_agar",
+    "readout": "10x live microscopy (trackpy) + Tecan M200 OD600 spatial reads"
+  },
+  "realized_concentrations": [
+    {
+      "well": "A1",
+      "vv": 0.0,
+      "final_concentration": {
+        "penicillin_U_per_mL": 0.0,
+        "streptomycin_ug_per_mL": 0.0
+      }
+    },
+    {
+      "well": "A2",
+      "vv": 0.15,
+      "final_concentration": {
+        "penicillin_U_per_mL": 1500.0,
+        "streptomycin_ug_per_mL": 1500.0
+      }
+    },
+    {
+      "well": "A3",
+      "vv": 0.25,
+      "final_concentration": {
+        "penicillin_U_per_mL": 2500.0,
+        "streptomycin_ug_per_mL": 2500.0
+      }
+    }
+  ],
+  "files": {
+    "protocol.py": "converged Opentrons protocol (OT-2, apiLevel 2.20)",
+    "ir.json": "intermediate spec compiled from the paper",
+    "analysis.json": "opentrons analyze dry-run (result=ok, 44 commands)",
+    "conformance.json": "realized-vs-target dilution from the command ledger",
+    "run_log.json": "every draft and every deterministic catch",
+    "signoff.md": "human wet-lab sign-off checklist (gate before dispatch)"
+  },
+  "engine": {
+    "opentrons_version": "8.8.2",
+    "python_version": "3.10.20",
+    "max_supported_apiLevel": "2.27"
+  },
+  "note": "validated = static + analyze + conformance pass; NOT 'safe to run'. Dispatch to the robot only after the sign-off below is complete."
+}

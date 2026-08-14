@@ -1,0 +1,14 @@
+{
+  "backend": "isaac-sim-5.x live",
+  "n_steps": 514,
+  "deck_layout": {
+    "1": "corning_96_wellplate_360ul_flat",
+    "2": "opentrons_15_tuberack_falcon_15ml_conical",
+    "7": "opentrons_96_tiprack_300ul"
+  },
+  "reachable_all": true,
+  "reach_violations": [],
+  "collisions": [],
+  "min_transit_clearance_mm": 20.0,
+  "verdict": "FEASIBLE \u2014 all targets reachable, no collisions"
+}

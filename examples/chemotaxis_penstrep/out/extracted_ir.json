@@ -1,0 +1,68 @@
+{
+  "protocol_name": "penstrep_chemotaxis_dilution_prep",
+  "paper": {
+    "title": "Negative Chemotaxis of E. coli Exposed to Penicillin-Streptomycin Gradient in Well Plate Assay",
+    "assay_type": "bacterial negative chemotaxis assay"
+  },
+  "api_level": "2.20",
+  "robot_type": "OT-2",
+  "dilution": {
+    "stock_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A1",
+      "liquid": "Penicillin-Streptomycin Stock",
+      "stock_conc": {
+        "penicillin_U_per_mL": 10000
+      }
+    },
+    "diluent_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A2",
+      "liquid": "LB media"
+    },
+    "dest_labware": "corning_12_wellplate_6.9ml_flat",
+    "targets": [
+      {
+        "well": "A1",
+        "vv": 0.0
+      },
+      {
+        "well": "A2",
+        "vv": 0.15
+      },
+      {
+        "well": "A3",
+        "vv": 0.25
+      }
+    ],
+    "total_vol_ul": 200,
+    "tolerance_vv": 0.01
+  },
+  "gates": [
+    {
+      "id": "G1",
+      "kind": "pause",
+      "prompt": "Mix prepared PenStrep aqueous dilutions 1:1 (50% v/v) with molten 8% LB agar maintained at 80\u00b0C in plastic vials, and dispense 200 \u00b5L of the mixture into the 12-well plate wells at an angle for directional solidification."
+    },
+    {
+      "id": "G2",
+      "kind": "pause",
+      "prompt": "After PenStrep-agar solidification, overlay 200 \u00b5L of diluted E. coli culture into each well for real-time microscopy or Tecan OD600 measurement."
+    }
+  ],
+  "off_deck": [
+    "autoclave LB broth media (20 g/L) at 121\u00b0C for 20 min",
+    "culture E. coli overnight at 37\u00b0C, 150 rpm",
+    "dilute overnight culture (500 \u00b5L in 15 mL LB media)",
+    "prepare 8% agar in LB media and store at 80\u00b0C",
+    "mix PenStrep dilutions 50% v/v with molten agar off-deck",
+    "pour/solidify agar mixture in 12-well plate wells",
+    "real-time microscopy imaging (10X magnification, 37\u00b0C)",
+    "OD600 measurement using Tecan Infinite M200 plate reader"
+  ],
+  "open_clarifications": [
+    "The target cell density for diluting the overnight E. coli culture (500 \u00b5L into 15 mL media) is omitted in the paper text ('reduce the cell density to ** determined by **').",
+    "PenStrep concentration is stated as 15% and 25% dilutions of a 10,000 U/mL stock solution; volume fraction (v/v) relative to stock was interpreted as 0.15 and 0.25.",
+    "Total volume for intermediate aqueous PenStrep dilution prep prior to mixing 1:1 with agar was not explicitly stated; 200 \u00b5L total volume per well was selected for robot execution."
+  ]
+}

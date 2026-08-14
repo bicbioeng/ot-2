@@ -1,0 +1,26 @@
+[
+  {
+    "iteration": 1,
+    "stage_reached": "static",
+    "passed": false,
+    "static_errors": [
+      "gate_present L0: declared gate G1 not found as a protocol.pause() in code",
+      "volume_bounds L37: transfer 1000.0 uL exceeds p300_single_gen2 max 300 uL",
+      "volume_bounds L38: transfer 850.0 uL exceeds p300_single_gen2 max 300 uL",
+      "volume_bounds L39: transfer 750.0 uL exceeds p300_single_gen2 max 300 uL"
+    ],
+    "analyze": null,
+    "conformance_failures": []
+  },
+  {
+    "iteration": 2,
+    "stage_reached": "converged",
+    "passed": true,
+    "static_errors": [],
+    "analyze": {
+      "result": "ok",
+      "errors": []
+    },
+    "conformance_failures": []
+  }
+]

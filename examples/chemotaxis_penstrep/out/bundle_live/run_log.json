@@ -1,0 +1,13 @@
+[
+  {
+    "iteration": 1,
+    "stage_reached": "converged",
+    "passed": true,
+    "static_errors": [],
+    "analyze": {
+      "result": "ok",
+      "errors": []
+    },
+    "conformance_failures": []
+  }
+]

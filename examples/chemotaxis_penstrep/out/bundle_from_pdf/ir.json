@@ -1,0 +1,61 @@
+{
+  "protocol_name": "PenStrep Dilution Series for E. coli Chemotaxis Assay",
+  "paper": {
+    "title": "Agar loaded with chemicals as a drug-releasing mechanism for E. coli negative chemotaxis",
+    "assay_type": "chemotaxis"
+  },
+  "api_level": "2.20",
+  "robot_type": "OT-2",
+  "dilution": {
+    "stock_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A1",
+      "liquid": "Penicillin-Streptomycin Stock",
+      "stock_conc": {
+        "penicillin_U_per_mL": 10000
+      }
+    },
+    "diluent_source": {
+      "labware": "nest_12_reservoir_15ml",
+      "well": "A2",
+      "liquid": "LB media"
+    },
+    "dest_labware": "corning_12_wellplate_6.9ml_flat",
+    "targets": [
+      {
+        "well": "A1",
+        "vv": 0.0
+      },
+      {
+        "well": "A2",
+        "vv": 0.15
+      },
+      {
+        "well": "A3",
+        "vv": 0.25
+      }
+    ],
+    "total_vol_ul": 1000,
+    "tolerance_vv": 0.01
+  },
+  "gates": [
+    {
+      "id": "G1",
+      "kind": "pause",
+      "prompt": "Remove prepared aqueous PenStrep dilutions for manual 1:1 mixing with molten 8% agar and casting into well plate."
+    }
+  ],
+  "off_deck": [
+    "prepare 8% agar in LB media and keep at 80\u00b0C",
+    "mix aqueous PenStrep dilutions 1:1 (50% v/v) with molten agar in vial tubes",
+    "pipette 200 \u00b5L agar mixture into 12-well plate and allow partial solidification at an angle",
+    "add 200 \u00b5L diluted overnight E. coli culture into well",
+    "real-time microscopy imaging for motility tracking at 37\u00b0C",
+    "OD600 spatial measurement on Tecan Infinite M200 plate reader"
+  ],
+  "open_clarifications": [
+    "Paper states 'diluted to 15% and 25% by using LB media' before 1:1 mixing with agar. Volume fractions 0.15 and 0.25 reflect this intermediate dilution step.",
+    "Target cell density determination text is incomplete in source methods ('reduced to cell density to ** determined by **').",
+    "Stock PenStrep concentration is given as 10,000 U/mL (penicillin unit basis); commercial standard also includes 10,000 \u00b5g/mL streptomycin."
+  ]
+}
