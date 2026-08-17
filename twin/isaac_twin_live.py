@@ -148,12 +148,34 @@ def parse_ledger(path):
     a = json.loads(open(path).read())
     cmds = a.get("commands", [])
     layout, slot_defs, id2slot, pip_mount = {}, {}, {}, {}
+
+    # Labware sitting ON a module is located by moduleId, NOT slotName, and the
+    # module raises it ~80 mm off the deck. Resolve module -> slot first so the
+    # rest of the twin can keep working in slot space.
+    mod_slot, modules, type_slot = {}, {}, {}
+    for m in a.get("modules", []):
+        slot = str((m.get("location") or {}).get("slotName") or "")
+        model = m.get("model") or ""
+        if slot:
+            modules[slot] = model
+            if m.get("id"):
+                mod_slot[m["id"]] = slot
+            for _k in ("temperature", "magnetic", "thermocycler", "heaterShaker"):
+                if _k.lower() in model.lower():
+                    type_slot[_k] = slot
+
+    pip_name = {}
     for c in cmds:
         if c.get("commandType") == "loadPipette":
-            pip_mount[c.get("result", {}).get("pipetteId")] = c["params"].get("mount", "left")
+            p, res = c["params"], c.get("result", {})
+            mount = p.get("mount", "left")
+            pip_mount[res.get("pipetteId")] = mount
+            pip_name[mount] = p.get("pipetteName")
         if c.get("commandType") == "loadLabware":
             p, res = c["params"], c.get("result", {})
-            slot = str(p.get("location", {}).get("slotName"))
+            loc = p.get("location", {}) or {}
+            slot = (str(loc["slotName"]) if loc.get("slotName")
+                    else mod_slot.get(loc.get("moduleId")))
             dfn = res.get("definition")
             if slot and dfn:
                 layout[slot] = p.get("loadName"); slot_defs[slot] = dfn
@@ -177,7 +199,33 @@ def parse_ledger(path):
         elif t == "custom" and "DELAY" in str(p.get("legacyCommandType", "")):
             # protocol.delay(...) — e.g. the 15 min room-temp agar solidification
             steps.append(("delay", None, p.get("legacyCommandText", "delay"), None, "left"))
-    return layout, slot_defs, steps
+        elif t in ("temperatureModule/setTargetTemperature", "temperatureModule/waitForTemperature",
+                   "thermocycler/setTargetBlockTemperature", "thermocycler/setTargetLidTemperature"):
+            steps.append(("modtemp", mod_slot.get(p.get("moduleId")),
+                          str(p.get("celsius", "")), None, "left"))
+        elif t in ("magneticModule/engage", "magneticModule/disengage"):
+            steps.append(("magnet", mod_slot.get(p.get("moduleId")),
+                          "engage" if t.endswith("engage") else "disengage", None, "left"))
+        elif t in ("thermocycler/openLid", "thermocycler/closeLid"):
+            steps.append(("tclid", mod_slot.get(p.get("moduleId")),
+                          "open" if t.endswith("openLid") else "close", None, "left"))
+        elif t == "custom":
+            # The legacy (apiLevel <= 2.13) path reports module actions as custom
+            # commands with NO moduleId, so they are resolved by module TYPE from
+            # the deck. Missing this makes every module step a silent no-op.
+            lt = str(p.get("legacyCommandType", ""))
+            txt = str(p.get("legacyCommandText", ""))
+            if "TEMPDECK_SET_TEMP" in lt or "THERMOCYCLER_SET_BLOCK_TEMP" in lt:
+                deg = "".join(ch for ch in txt if ch.isdigit() or ch == ".")
+                kind = "thermocycler" if "THERMOCYCLER" in lt else "temperature"
+                steps.append(("modtemp", type_slot.get(kind), deg[:5] or "37", None, "left"))
+            elif "MAGDECK_ENGAGE" in lt or "MAGDECK_DISENGAGE" in lt:
+                steps.append(("magnet", type_slot.get("magnetic"),
+                              "engage" if "ENGAGE" in lt else "disengage", None, "left"))
+            elif "THERMOCYCLER_OPEN" in lt or "THERMOCYCLER_CLOSE" in lt:
+                steps.append(("tclid", type_slot.get("thermocycler"),
+                              "open" if "OPEN" in lt else "close", None, "left"))
+    return layout, slot_defs, steps, modules, pip_name
 
 
 def read_binary_stl(path):
@@ -208,11 +256,45 @@ def h_conical(vol, r, cone_h=CONE_H):
 
 # ------------------------------------ stage ------------------------------------
 slots = deck.load_deck(args.deck)
-layout, slot_defs, steps = parse_ledger(args.ledger)
+layout, slot_defs, steps, mod_models, pip_names = parse_ledger(args.ledger)
+
+# Registry: module geometry and pipette channel counts. Baked JSON, because the
+# Isaac container has no Opentrons package to read definitions from.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from twin import registry as _registry
+except Exception:
+    import registry as _registry
+_REG = _registry.load()
+
+MOD_OFFSET, MOD_GEOM = {}, {}
+for _slot, _model in mod_models.items():
+    _e = _REG["modules"].get(_model) or {}
+    _lo = _e.get("labware_offset") or {}
+    MOD_OFFSET[_slot] = (_lo.get("x", 0.0), _lo.get("y", 0.0), _lo.get("z", 0.0))
+    MOD_GEOM[_slot] = _e
+
+# Channels per mount. A multi is 8 nozzles on 9 mm centres: it takes a whole
+# tip-rack column and one aspirate moves liquid in eight wells at once.
+CHANNELS = {}
+for _mnt, _pn in pip_names.items():
+    CHANNELS[_mnt] = int((_REG["pipettes"].get(_pn) or {}).get("channels") or 1)
+MAX_CH = max(CHANNELS.values()) if CHANNELS else 1
+CH_PITCH = 9.0
+if mod_models:
+    log(f"modules: {mod_models}")
+if MAX_CH > 1:
+    log(f"pipettes: {pip_names} -> channels {CHANNELS} (multi-channel active)")
 geoms = {s: LabwareGeom(d) for s, d in slot_defs.items()}
 x0, x1, y0, y1 = deck.deck_extent(slots)
 cxd, cyd = (x0 + x1) / 2, (y0 + y1) / 2
-travel_z = max((g.dims[2] for g in geoms.values()), default=30.0) + _CLEAR
+# Travel height must clear the TALLEST thing on the deck. Labware standing on a
+# module is ~80-98 mm up before its own height counts, and a thermocycler lid is
+# taller still — measuring deck-level labware only would drive the tip through it.
+_tallest = [g.dims[2] + (MOD_OFFSET.get(_s, (0, 0, 0))[2]) for _s, g in geoms.items()]
+for _s, _e in MOD_GEOM.items():
+    _tallest.append(float(_e.get("height") or 0.0) + float(_e.get("lid_height") or 0.0))
+travel_z = max(_tallest, default=30.0) + _CLEAR
 
 LW = {}
 _lwm = os.path.join(args.labware, "lw_meta.json")
@@ -379,9 +461,76 @@ def well_radius(w):
 
 
 def labware_origin(slot):
-    pos = slots[slot]["position"]; c = geoms[slot].corner
-    return pos[0] + c[0], pos[1] + c[1], pos[2] + c[2]
+    """Deck origin of a labware, including the module it may be standing on.
 
+    A Temperature Module raises its labware 80.09 mm; a Thermocycler 97.8 mm.
+    Ignoring that would put the plate on the deck while the pipette reaches for
+    it 80 mm higher -- every well miss, silently.
+    """
+    pos = slots[slot]["position"]; c = geoms[slot].corner
+    mx, my, mz = MOD_OFFSET.get(slot, (0.0, 0.0, 0.0))
+    return pos[0] + c[0] + mx, pos[1] + c[1] + my, pos[2] + c[2] + mz
+
+
+# ---------------- modules ----------------
+# Body drawn from the module's own definition: footprint, height, and where it
+# sits relative to the slot corner. The labware then stands on top of it.
+mod_prims = {}
+for _slot, _e in MOD_GEOM.items():
+    if _slot not in slots or not _e.get("x_dim"):
+        continue
+    _sp = slots[_slot]["position"]
+    _co = _e.get("corner_offset") or {}
+    _xd, _yd = float(_e["x_dim"]), float(_e["y_dim"])
+    _h = float(_e.get("height") or 84.0)
+    _bx = _sp[0] + float(_co.get("x", 0.0)) + _xd / 2
+    _by = _sp[1] + float(_co.get("y", 0.0)) + _yd / 2
+    _z0 = _sp[2]
+    _typ = str(_e.get("type", ""))
+    # A real module is not a featureless slab: a dark anodised chassis, a
+    # RECESSED platform the labware drops into, and a lighter control panel on
+    # the front face. Drawing one box made the deck look like a stack of bricks.
+    _shell_h = _h - 6.0
+    _body = make_box(f"/World/module_{_slot}/chassis", (_bx, _by, _z0 + _shell_h / 2),
+                     (_xd / 2, _yd / 2, _shell_h / 2), (0.16, 0.17, 0.19))
+    bind(_body, MAT["frame"])
+    # platform: the 128 x 86 mm labware interface, inset and raised into a lip
+    _pw = float((_e.get("labware_iface_x") or 128.0)) / 2
+    _ph = float((_e.get("labware_iface_y") or 86.0)) / 2
+    _lo = _e.get("labware_offset") or {}
+    _plat_cx = _sp[0] + float(_lo.get("x", 0.0)) + _pw
+    _plat_cy = _sp[1] + float(_lo.get("y", 0.0)) + _ph
+    _rim = make_box(f"/World/module_{_slot}/platform", (_plat_cx, _plat_cy, _z0 + _h - 3.0),
+                    (_pw + 2.0, _ph + 2.0, 3.0), (0.30, 0.32, 0.36))
+    bind(_rim, MAT["carr"])
+    # control panel on the front (-Y) face, with its own readout tile
+    _panel = make_box(f"/World/module_{_slot}/panel",
+                      (_bx, _sp[1] + float(_co.get("y", 0.0)) + 2.0, _z0 + _shell_h * 0.55),
+                      (_xd / 2 * 0.34, 2.0, _shell_h * 0.16), (0.24, 0.25, 0.29))
+    bind(_panel, MAT["carr"])
+    _readout = make_box(f"/World/module_{_slot}/readout",
+                        (_bx, _sp[1] + float(_co.get("y", 0.0)) + 0.6, _z0 + _shell_h * 0.55),
+                        (_xd / 2 * 0.20, 0.8, _shell_h * 0.09), (0.10, 0.35, 0.30))
+    _rm, _rdin = make_pbr(f"/World/mat/readout_{_slot}", (0.10, 0.35, 0.30), roughness=0.35)
+    bind(_readout, _rm)
+    _lid = None
+    if _e.get("lid_height"):
+        # Thermocycler lid: its own slab, hinged at the back, that tilts up on open()
+        _lh = float(_e["lid_height"])
+        _lid = UsdGeom.Xform.Define(stage, f"/World/module_{_slot}/lidgrp")
+        _ls = make_box(f"/World/module_{_slot}/lidgrp/slab", (_bx, _by, _z0 + _h + _lh / 2),
+                       (_xd / 2, _yd / 2 * 0.62, _lh / 2), (0.14, 0.15, 0.17))
+        bind(_ls, MAT["frame"])
+    _mag = None
+    if "magnetic" in _typ:
+        _mag = make_box(f"/World/module_{_slot}/magnet", (_plat_cx, _plat_cy, _z0 + _h + 1.0),
+                        (_pw * 0.92, _ph * 0.92, 2.0), (0.52, 0.14, 0.14))
+        bind(_mag, MAT["carr"]); show(_mag, False)
+    mod_prims[_slot] = {"body": _body, "lid": _lid, "magnet": _mag,
+                        "readout": _rdin, "z": _z0 + _h,
+                        "lid_h": _e.get("lid_height") or 0.0}
+    log(f"  module slot {_slot}: {_e.get('display')} "
+        f"({_xd:.0f}x{_yd:.0f}x{_h:.0f} mm, labware +{MOD_OFFSET[_slot][2]:.1f} mm)")
 
 for slot, g in geoms.items():
     ox, oy, oz = labware_origin(slot)
@@ -526,19 +675,28 @@ if args.chassis:
                       ((mb[1][0] - mb[0][0] - 110) / 2, 34.0, (bz1 - bz0) / 2),
                       (0.20, 0.21, 0.24)), MAT["beam"])
 
-# carried tip: a real p300 profile (collar + long taper), + the liquid column inside it
+# Carried tips: a real p300 profile (collar + long taper) with a liquid column
+# inside. ONE PER CHANNEL — an 8-channel head carries eight tips on 9 mm centres
+# and moves liquid in eight wells at once; drawing a single tip would show a
+# quarter of the work the protocol actually does.
 tip_grp = UsdGeom.Xform.Define(stage, "/World/gantry/carriage/pipette/tipgrp")
-_collar = make_cyl("/World/gantry/carriage/pipette/tipgrp/collar",
-                   (NOZZLE[0], NOZZLE[1], NOZZLE[2] - 6), 3.6, 12.0)
-_taper = make_cone("/World/gantry/carriage/pipette/tipgrp/taper",
-                   (NOZZLE[0], NOZZLE[1], NOZZLE[2] - 12 - (TIP_LEN - 12) / 2), 3.4, TIP_LEN - 12, flip=True)
-bind(_collar, MAT["tip"]); bind(_taper, MAT["tip"])
 TIPLIQ_R, TIPLIQ_BASE = 2.6, NOZZLE[2] - TIP_LEN + 6
-tipliq = make_cyl("/World/gantry/carriage/pipette/tipgrp/liq",
-                  (NOZZLE[0], NOZZLE[1], TIPLIQ_BASE), TIPLIQ_R, 1.0, (0.8, 0.6, 0.2))
 _tlm, tipliq_din = make_pbr("/World/mat/tipliq", (0.8, 0.6, 0.2), roughness=0.28, opacity=1.0)
-bind(tipliq, _tlm)
-show(tip_grp, False); show(tipliq, False)
+tip_units = []
+for _ch in range(MAX_CH):
+    _cy = NOZZLE[1] - _ch * CH_PITCH        # channel 0 is the A-row nozzle
+    _c = make_cyl(f"/World/gantry/carriage/pipette/tipgrp/collar_{_ch}",
+                  (NOZZLE[0], _cy, NOZZLE[2] - 6), 3.6, 12.0)
+    _t = make_cone(f"/World/gantry/carriage/pipette/tipgrp/taper_{_ch}",
+                   (NOZZLE[0], _cy, NOZZLE[2] - 12 - (TIP_LEN - 12) / 2), 3.4,
+                   TIP_LEN - 12, flip=True)
+    bind(_c, MAT["tip"]); bind(_t, MAT["tip"])
+    _lq = make_cyl(f"/World/gantry/carriage/pipette/tipgrp/liq_{_ch}",
+                   (NOZZLE[0], _cy, TIPLIQ_BASE), TIPLIQ_R, 1.0, (0.8, 0.6, 0.2))
+    bind(_lq, _tlm)
+    show(_lq, False)
+    tip_units.append({"collar": _c, "taper": _t, "liq": _lq, "y": _cy})
+show(tip_grp, False)
 
 # ---- trash: a REAL open bin ----
 # The reference CAD models the trash as a solid block, so tips could only ever sit on its lid
@@ -591,8 +749,9 @@ def _same_site(a, b):
     """R2: are these two consecutive steps acting on the same well?"""
     if a is None or b is None:
         return False
-    if a[0] in ("delay", "drop") or b[0] in ("delay", "drop"):
-        return False           # trash and the park pose are not wells
+    _nonwell = ("delay", "drop", "modtemp", "magnet", "tclid")
+    if a[0] in _nonwell or b[0] in _nonwell:
+        return False           # trash, park and module actions are not wells
     return a[1] == b[1] and a[2] == b[2]
 
 
@@ -642,8 +801,12 @@ def work_xyz(i, step):
     if kind == "drop":
         # hold the tip over the OPEN bin, above its rim, and release
         return trash_pos[0], trash_pos[1], trash_pos[2] + 32.0
-    if kind == "delay":
-        return PARK_XY[0], PARK_XY[1], travel_z   # R1: home over the trash while the agar sets
+    if kind in ("delay", "modtemp", "magnet", "tclid"):
+        # No arm motion belongs to these: a module heating, a magnet engaging or a
+        # lid opening is the deck acting, not the gantry. Park (R1) and let the
+        # module animate. Routing them through the well path also crashed on a
+        # thermocycler, whose slot holds a module but no labware.
+        return PARK_XY[0], PARK_XY[1], travel_z
     ox, oy, oz = labware_origin(slot)
     w = wdef(slot, well)
     x, y = ox + w["x"], oy + w["y"]
@@ -784,14 +947,50 @@ def set_well(key, vol, rgb):
     show(w["prim"], True)
 
 
-def set_tipliq(vol, rgb):
-    if vol <= 0.01:
-        show(tipliq, False); return
-    h = min(TIP_LEN * 0.62, (vol / 300.0) * TIP_LEN * 0.62 * max(1.0, GAIN * 0.5))
-    tipliq.GetHeightAttr().Set(float(max(0.4, h)))
-    UsdGeom.XformCommonAPI(tipliq).SetTranslate(Gf.Vec3d(NOZZLE[0], NOZZLE[1], TIPLIQ_BASE + h / 2))
+def set_tipliq(vol, rgb, channels=1):
+    """Liquid column inside each carried tip. `vol` is PER CHANNEL — the ledger
+    reports one aspirate of N uL and an 8-channel head draws N uL into each of
+    its eight tips, not N split between them."""
     tipliq_din.Set(Gf.Vec3f(*rgb))
-    show(tipliq, True)
+    if vol <= 0.01:
+        for u in tip_units:
+            show(u["liq"], False)
+        return
+    h = min(TIP_LEN * 0.62, (vol / 300.0) * TIP_LEN * 0.62 * max(1.0, GAIN * 0.5))
+    for i, u in enumerate(tip_units):
+        if i >= channels:
+            show(u["liq"], False); continue
+        u["liq"].GetHeightAttr().Set(float(max(0.4, h)))
+        UsdGeom.XformCommonAPI(u["liq"]).SetTranslate(
+            Gf.Vec3d(NOZZLE[0], u["y"], TIPLIQ_BASE + h / 2))
+        show(u["liq"], True)
+
+
+def show_tips(channels):
+    """Show exactly as many carried tips as the active pipette has channels."""
+    show(tip_grp, channels > 0)
+    for i, u in enumerate(tip_units):
+        on = i < channels
+        show(u["collar"], on); show(u["taper"], on)
+
+
+ROW_LETTERS = "ABCDEFGH"
+
+
+def channel_wells(slot, well, channels):
+    """Wells an aspirate/dispense actually touches.
+
+    A single channel touches the named well. An 8-channel head aligned on A1
+    touches A1..H1 — one command, eight wells. Only wells that exist in the
+    labware definition are returned, so a 12-trough reservoir or a 4-row plate
+    does not invent wells it does not have.
+    """
+    if channels <= 1 or not slot or slot not in geoms:
+        return [well]
+    col = well[1:]
+    have = geoms[slot].definition.get("wells", {})
+    out = [f"{r}{col}" for r in ROW_LETTERS[:channels] if f"{r}{col}" in have]
+    return out or [well]
 
 
 class State:
@@ -804,7 +1003,13 @@ class State:
         self.wrgb = {k: (0.35, 0.38, 0.44) for k in well_liq}
         self.tubes = {k: tube_fill(k) for k in tube_liq}
         self.trash = 0
-        show(tip_grp, False); show(tipliq, False)
+        self.mod = {}
+        show_tips(0); set_tipliq(0.0, self.tip_rgb, 0)
+        for _s, _m in mod_prims.items():
+            if _m["lid"] is not None:
+                UsdGeom.XformCommonAPI(_m["lid"]).SetTranslate(Gf.Vec3d(0, 0, 0))
+            if _m["magnet"] is not None:
+                show(_m["magnet"], False)
         for k in well_liq:
             set_well(k, 0.0, (0.35, 0.38, 0.44))
         for k in tube_liq:
@@ -818,31 +1023,50 @@ class State:
         if not op:
             return
         kind, slot, well, vol = op[:4]
+        mount = op[4] if len(op) > 4 else "left"
+        nch = CHANNELS.get(mount, 1)
         key = f"{slot}/{well}"
         v = float(vol or 0)
         if kind == "pick":
             self.tip = True; self.tip_vol = 0.0
-            if key in rack_tips:
-                show(rack_tips[key], False)      # the tip LEAVES the rack
-            show(tip_grp, True)
+            # a multi takes a WHOLE COLUMN out of the rack, not one tip
+            for w in channel_wells(slot, well, nch):
+                t = rack_tips.get(f"{slot}/{w}")
+                if t is not None:
+                    show(t, False)
+            show_tips(nch)
         elif kind == "aspirate":
-            if key in tube_liq:
-                self.tip_rgb = tube_liq[key]["rgb"]
-                self.tubes[key] = max(0.0, self.tubes[key] - v)
-                set_tube(key, self.tubes[key])   # source level falls by exactly what was drawn
+            # volume is PER CHANNEL: each of the 8 tips draws `v` from its own well
+            for w in channel_wells(slot, well, nch):
+                k = f"{slot}/{w}"
+                if k in tube_liq:
+                    self.tip_rgb = tube_liq[k]["rgb"]
+                    self.tubes[k] = max(0.0, self.tubes[k] - v)
+                    set_tube(k, self.tubes[k])   # source level falls by what was drawn
+                elif k in well_liq:
+                    self.tip_rgb = self.wrgb.get(k, self.tip_rgb)
+                    self.wells[k] = max(0.0, self.wells[k] - v)
+                    set_well(k, self.wells[k], self.wrgb.get(k, self.tip_rgb))
             self.tip_vol += v
-            set_tipliq(self.tip_vol, self.tip_rgb)
+            set_tipliq(self.tip_vol, self.tip_rgb, nch)
         elif kind == "dispense":
-            if key in well_liq:
-                self.wells[key] += v
-                self.wrgb[key] = self.tip_rgb
-                set_well(key, self.wells[key], self.tip_rgb)
+            for w in channel_wells(slot, well, nch):
+                k = f"{slot}/{w}"
+                if k in well_liq:
+                    self.wells[k] += v
+                    self.wrgb[k] = self.tip_rgb
+                    set_well(k, self.wells[k], self.tip_rgb)
+                elif k in tube_liq:
+                    self.tubes[k] = self.tubes.get(k, 0.0) + v
+                    set_tube(k, self.tubes[k])
             self.tip_vol = max(0.0, self.tip_vol - v)
-            set_tipliq(self.tip_vol, self.tip_rgb)
+            set_tipliq(self.tip_vol, self.tip_rgb, nch)
         elif kind == "blowout":
             # the last of the liquid is expelled — the tip ends up truly empty
             self.tip_vol = 0.0
-            set_tipliq(0.0, self.tip_rgb)
+            set_tipliq(0.0, self.tip_rgb, nch)
+        elif kind in ("modtemp", "magnet", "tclid"):
+            self.module_op(kind, slot, well)
         elif kind == "delay":
             # protocol.delay(): the agar sets. Solidified agar is duller and more opaque than
             # the molten mix that was dispensed, so darken every well that holds some.
@@ -855,10 +1079,37 @@ class State:
             log(f"  [protocol] {well}")            # the ledger's own delay text
         elif kind == "drop":
             self.tip = False; self.tip_vol = 0.0
-            show(tip_grp, False); show(tipliq, False)
-            if self.trash < len(trash_tips):
-                show(trash_tips[self.trash], True)   # and lands in the trash
-            self.trash += 1
+            show_tips(0); set_tipliq(0.0, self.tip_rgb, 0)
+            for _ in range(nch):                     # 8 tips land, not 1
+                if self.trash < len(trash_tips):
+                    show(trash_tips[self.trash], True)
+                self.trash += 1
+
+    def module_op(self, kind, slot, value):
+        """Module state made visible: a magnet that rises, a lid that lifts, a
+        block that warms. Without this a temperature or magnet step is a silent
+        pause and the run looks like nothing happened."""
+        m = mod_prims.get(slot)
+        self.mod[slot] = value
+        if m is None:
+            return
+        if kind == "magnet" and m["magnet"] is not None:
+            show(m["magnet"], value == "engage")
+        elif kind == "tclid" and m["lid"] is not None:
+            lift = float(m["lid_h"]) + 30.0 if value == "open" else 0.0
+            UsdGeom.XformCommonAPI(m["lid"]).SetTranslate(Gf.Vec3d(0, 0, lift))
+        elif kind == "modtemp":
+            try:
+                c = float(value)
+            except (TypeError, ValueError):
+                return
+            # Tint the READOUT TILE only. Repainting the whole chassis turned a
+            # lab module into a pink brick -- a status light is what a real
+            # module changes, not its paint.
+            f = max(0.0, min(1.0, (c - 4.0) / 91.0))
+            if m.get("readout") is not None:
+                m["readout"].Set(Gf.Vec3f(0.10 + 0.75 * f, 0.42 - 0.22 * f, 0.44 - 0.34 * f))
+        log(f"  [module] slot {slot}: {kind} -> {value}")
 
 
 state = State()

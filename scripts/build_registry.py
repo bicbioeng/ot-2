@@ -39,11 +39,23 @@ CAD_LABWARE = {
     "opentrons_1_trash_1100ml_fixed":             "open trash bin, discarded tips accumulate",
 }
 
-# Single-channel only: the twin models ONE nozzle per mount, so an 8-channel
-# head would show a single tip doing work eight tips actually do.
+# Every OT-2 pipette, single and 8-channel. A multi is modelled as 8 nozzles on
+# 9 mm centres: it takes a whole tip-rack column, and one aspirate moves liquid
+# in eight wells at once. Flex pipettes and the 96-channel head are refused —
+# this is an OT-2 twin and their geometry is not the same machine.
 CAD_PIPETTES = {
-    "p300_single_gen2": "P300 single-channel GEN2",
-    "p20_single_gen2":  "P20 single-channel GEN2",
+    "p20_single_gen2":   "P20 single-channel GEN2",
+    "p300_single_gen2":  "P300 single-channel GEN2",
+    "p1000_single_gen2": "P1000 single-channel GEN2",
+    "p20_multi_gen2":    "P20 8-channel GEN2",
+    "p300_multi_gen2":   "P300 8-channel GEN2",
+    "p10_single":        "P10 single-channel GEN1",
+    "p50_single":        "P50 single-channel GEN1",
+    "p300_single":       "P300 single-channel GEN1",
+    "p1000_single":      "P1000 single-channel GEN1",
+    "p10_multi":         "P10 8-channel GEN1",
+    "p50_multi":         "P50 8-channel GEN1",
+    "p300_multi":        "P300 8-channel GEN1",
 }
 
 REASONS = {
@@ -86,7 +98,25 @@ def labware():
     return out
 
 
+# Modules the lab actually owns and the twin models: a body on the deck at the
+# right footprint and height, and labware raised onto it by the module's own
+# labwareOffset. Anything else is still refused.
+CAD_MODULES = {
+    "temperatureModuleV1": "Temperature Module GEN1",
+    "temperatureModuleV2": "Temperature Module GEN2",
+    "magneticModuleV1":    "Magnetic Module GEN1",
+    "magneticModuleV2":    "Magnetic Module GEN2",
+    "thermocyclerModuleV1": "Thermocycler GEN1 (lid rendered, opens/closes)",
+}
+
+
 def modules():
+    """Emit module geometry too, not just support flags.
+
+    The Isaac container has no Opentrons package, so the twin cannot read module
+    definitions at run time. The numbers it needs to place a module and the
+    labware on top of it are baked in here.
+    """
     root = os.path.join(BASE, "data", "module", "definitions")
     seen = {}
     for sub in sorted(os.listdir(root)):
@@ -96,14 +126,28 @@ def modules():
         for f in sorted(os.listdir(p)):
             j = json.load(open(os.path.join(p, f)))
             mid = j.get("model") or f.replace(".json", "")
-            seen[mid] = {
+            dims = j.get("dimensions", {})
+            entry = {
                 "display": j.get("displayName", mid),
                 "type": j.get("moduleType", "?"),
-                # The twin has no module support at all: no heating, no shaking,
-                # no magnet, no lid motion, and no geometry on the deck.
-                "support": "unsup",
-                "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+                # geometry: footprint, height, where the body sits vs the slot,
+                # and where labware sits on top of the body
+                "x_dim": dims.get("xDimension"),
+                "y_dim": dims.get("yDimension"),
+                "height": dims.get("bareOverallHeight"),
+                "lid_height": dims.get("lidHeight"),
+                "labware_iface_x": dims.get("labwareInterfaceXDimension"),
+                "labware_iface_y": dims.get("labwareInterfaceYDimension"),
+                "corner_offset": j.get("cornerOffsetFromSlot", {}),
+                "labware_offset": j.get("labwareOffset", {}),
             }
+            if mid in CAD_MODULES:
+                entry["support"] = "cad"
+                entry["note"] = CAD_MODULES[mid]
+            else:
+                entry["support"] = "unsup"
+                entry["note"] = "not modelled (no geometry for this module)"
+            seen[mid] = entry
     return seen
 
 
@@ -123,13 +167,10 @@ def pipettes():
             e["note"] = CAD_PIPETTES[name]
         elif "flex" in name or name == "p200_96":
             e["support"] = "unsup"
-            e["note"] = "Flex pipette — this twin is an OT-2"
-        elif spec.get("channels", 1) != 1:
-            e["support"] = "unsup"
-            e["note"] = "multi-channel: the twin models one nozzle per mount"
+            e["note"] = "Flex / 96-channel — this twin is an OT-2"
         else:
             e["support"] = "unsup"
-            e["note"] = "no CAD for this pipette body"
+            e["note"] = "not an OT-2 pipette"
         out[name] = e
     return out
 
@@ -149,7 +190,8 @@ def main():
     print(f"  labware  {n_ok} supported / {len(reg['labware'])} known")
     print(f"  pipettes {sum(1 for v in reg['pipettes'].values() if v['support'] == 'cad')} "
           f"supported / {len(reg['pipettes'])} known")
-    print(f"  modules  0 supported / {len(reg['modules'])} known")
+    print(f"  modules  {sum(1 for v in reg['modules'].values() if v['support'] == 'cad')} "
+          f"supported / {len(reg['modules'])} known")
     return 0
 
 

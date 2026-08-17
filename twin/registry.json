@@ -962,64 +962,224 @@
  },
  "modules": {
   "absorbanceReaderV1": {
+   "corner_offset": {
+    "x": -4.875,
+    "y": -4.875,
+    "z": 0
+   },
    "display": "Absorbance Plate Reader Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "height": 18.5,
+   "labware_iface_x": 127.76,
+   "labware_iface_y": 85.48,
+   "labware_offset": {
+    "x": 2.0,
+    "y": 0.0,
+    "z": 0.65
+   },
+   "lid_height": 60.0,
+   "note": "not modelled (no geometry for this module)",
    "support": "unsup",
-   "type": "absorbanceReaderType"
+   "type": "absorbanceReaderType",
+   "x_dim": 155.3,
+   "y_dim": 95.5
   },
   "flexStackerModuleV1": {
+   "corner_offset": {
+    "x": -18,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Flex Stacker Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "height": 35,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": 161,
+    "y": 0,
+    "z": 31
+   },
+   "lid_height": null,
+   "note": "not modelled (no geometry for this module)",
    "support": "unsup",
-   "type": "flexStackerModuleType"
+   "type": "flexStackerModuleType",
+   "x_dim": 156.25,
+   "y_dim": 91.75
   },
   "heaterShakerModuleV1": {
+   "corner_offset": {
+    "x": -18,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Heater-Shaker Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "height": 82,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": -0.125,
+    "y": 1.125,
+    "z": 68.275
+   },
+   "lid_height": null,
+   "note": "not modelled (no geometry for this module)",
    "support": "unsup",
-   "type": "heaterShakerModuleType"
+   "type": "heaterShakerModuleType",
+   "x_dim": 156.25,
+   "y_dim": 91.75
   },
   "magneticBlockV1": {
+   "corner_offset": {
+    "x": -4.125,
+    "y": -4.125,
+    "z": 0
+   },
    "display": "Magnetic Block GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "height": 45,
+   "labware_iface_x": 127.75,
+   "labware_iface_y": 85.75,
+   "labware_offset": {
+    "x": 0,
+    "y": 0,
+    "z": 38
+   },
+   "lid_height": null,
+   "note": "not modelled (no geometry for this module)",
    "support": "unsup",
-   "type": "magneticBlockType"
+   "type": "magneticBlockType",
+   "x_dim": 136,
+   "y_dim": 94
   },
   "magneticModuleV1": {
+   "corner_offset": {
+    "x": -7,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Magnetic Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
-   "support": "unsup",
-   "type": "magneticModuleType"
+   "height": 110.152,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": 0.125,
+    "y": -0.125,
+    "z": 82.25
+   },
+   "lid_height": null,
+   "note": "Magnetic Module GEN1",
+   "support": "cad",
+   "type": "magneticModuleType",
+   "x_dim": 137,
+   "y_dim": 91
   },
   "magneticModuleV2": {
+   "corner_offset": {
+    "x": -7,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Magnetic Module GEN2",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
-   "support": "unsup",
-   "type": "magneticModuleType"
+   "height": 110.152,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": -1.175,
+    "y": -0.125,
+    "z": 82.25
+   },
+   "lid_height": null,
+   "note": "Magnetic Module GEN2",
+   "support": "cad",
+   "type": "magneticModuleType",
+   "x_dim": 137,
+   "y_dim": 91
   },
   "temperatureModuleV1": {
+   "corner_offset": {
+    "x": -68.5,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Temperature Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
-   "support": "unsup",
-   "type": "temperatureModuleType"
+   "height": 84,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": -0.15,
+    "y": -0.15,
+    "z": 80.09
+   },
+   "lid_height": null,
+   "note": "Temperature Module GEN1",
+   "support": "cad",
+   "type": "temperatureModuleType",
+   "x_dim": 196,
+   "y_dim": 91
   },
   "temperatureModuleV2": {
+   "corner_offset": {
+    "x": -68.5,
+    "y": -1.8,
+    "z": 0
+   },
    "display": "Temperature Module GEN2",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
-   "support": "unsup",
-   "type": "temperatureModuleType"
+   "height": 84,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": -1.45,
+    "y": -0.15,
+    "z": 80.09
+   },
+   "lid_height": null,
+   "note": "Temperature Module GEN2",
+   "support": "cad",
+   "type": "temperatureModuleType",
+   "x_dim": 196,
+   "y_dim": 91
   },
   "thermocyclerModuleV1": {
+   "corner_offset": {
+    "x": -22.125,
+    "y": 0,
+    "z": 0
+   },
    "display": "Thermocycler Module GEN1",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
-   "support": "unsup",
-   "type": "thermocyclerModuleType"
+   "height": 98.0,
+   "labware_iface_x": 128,
+   "labware_iface_y": 86,
+   "labware_offset": {
+    "x": 0,
+    "y": 82.56,
+    "z": 97.8
+   },
+   "lid_height": 37.7,
+   "note": "Thermocycler GEN1 (lid rendered, opens/closes)",
+   "support": "cad",
+   "type": "thermocyclerModuleType",
+   "x_dim": 172,
+   "y_dim": 259.7
   },
   "thermocyclerModuleV2": {
+   "corner_offset": {
+    "x": -22.125,
+    "y": 0,
+    "z": 0
+   },
    "display": "Thermocycler Module GEN2",
-   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "height": 108.96,
+   "labware_iface_x": 127.76,
+   "labware_iface_y": 85.48,
+   "labware_offset": {
+    "x": 0,
+    "y": 68.8,
+    "z": 108.96
+   },
+   "lid_height": 61.7,
+   "note": "not modelled (no geometry for this module)",
    "support": "unsup",
-   "type": "thermocyclerModuleType"
+   "type": "thermocyclerModuleType",
+   "x_dim": 172,
+   "y_dim": 245.2
   }
  },
  "opentrons_version": "8.8.2",
@@ -1029,7 +1189,7 @@
    "display": "Flex 96-Channel 1000 \u00b5L",
    "max_ul": 1000,
    "min_ul": 5,
-   "note": "multi-channel: the twin models one nozzle per mount",
+   "note": "not an OT-2 pipette",
    "support": "unsup"
   },
   "p1000_multi_em_flex": {
@@ -1037,7 +1197,7 @@
    "display": "Flex 8-Channel EM 1000 \u00b5L",
    "max_ul": 1000,
    "min_ul": 5,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   },
   "p1000_multi_flex": {
@@ -1045,7 +1205,7 @@
    "display": "Flex 8-Channel 1000 \u00b5L",
    "max_ul": 1000,
    "min_ul": 5,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   },
   "p1000_single": {
@@ -1053,15 +1213,15 @@
    "display": "P1000 Single-Channel GEN1",
    "max_ul": 1000,
    "min_ul": 100,
-   "note": "no CAD for this pipette body",
-   "support": "unsup"
+   "note": "P1000 single-channel GEN1",
+   "support": "cad"
   },
   "p1000_single_flex": {
    "channels": 1,
    "display": "Flex 1-Channel 1000 \u00b5L",
    "max_ul": 1000,
    "min_ul": 5,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   },
   "p1000_single_gen2": {
@@ -1069,31 +1229,31 @@
    "display": "P1000 Single-Channel GEN2",
    "max_ul": 1000,
    "min_ul": 100,
-   "note": "no CAD for this pipette body",
-   "support": "unsup"
+   "note": "P1000 single-channel GEN2",
+   "support": "cad"
   },
   "p10_multi": {
    "channels": 8,
    "display": "P10 8-Channel GEN1",
    "max_ul": 10,
    "min_ul": 1,
-   "note": "multi-channel: the twin models one nozzle per mount",
-   "support": "unsup"
+   "note": "P10 8-channel GEN1",
+   "support": "cad"
   },
   "p10_single": {
    "channels": 1,
    "display": "P10 Single-Channel GEN1",
    "max_ul": 10,
    "min_ul": 1,
-   "note": "no CAD for this pipette body",
-   "support": "unsup"
+   "note": "P10 single-channel GEN1",
+   "support": "cad"
   },
   "p200_96": {
    "channels": 96,
    "display": "Flex 96-Channel 200 \u00b5L",
    "max_ul": 200,
    "min_ul": 5,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   },
   "p20_multi_gen2": {
@@ -1101,8 +1261,8 @@
    "display": "P20 8-Channel GEN2",
    "max_ul": 20,
    "min_ul": 1,
-   "note": "multi-channel: the twin models one nozzle per mount",
-   "support": "unsup"
+   "note": "P20 8-channel GEN2",
+   "support": "cad"
   },
   "p20_single_gen2": {
    "channels": 1,
@@ -1117,24 +1277,24 @@
    "display": "P300 8-Channel GEN1",
    "max_ul": 300,
    "min_ul": 30,
-   "note": "multi-channel: the twin models one nozzle per mount",
-   "support": "unsup"
+   "note": "P300 8-channel GEN1",
+   "support": "cad"
   },
   "p300_multi_gen2": {
    "channels": 8,
    "display": "P300 8-Channel GEN2",
    "max_ul": 300,
    "min_ul": 20,
-   "note": "multi-channel: the twin models one nozzle per mount",
-   "support": "unsup"
+   "note": "P300 8-channel GEN2",
+   "support": "cad"
   },
   "p300_single": {
    "channels": 1,
    "display": "P300 Single-Channel GEN1",
    "max_ul": 300,
    "min_ul": 30,
-   "note": "no CAD for this pipette body",
-   "support": "unsup"
+   "note": "P300 single-channel GEN1",
+   "support": "cad"
   },
   "p300_single_gen2": {
    "channels": 1,
@@ -1149,15 +1309,15 @@
    "display": "P50 8-Channel GEN1",
    "max_ul": 50,
    "min_ul": 5,
-   "note": "multi-channel: the twin models one nozzle per mount",
-   "support": "unsup"
+   "note": "P50 8-channel GEN1",
+   "support": "cad"
   },
   "p50_multi_flex": {
    "channels": 8,
    "display": "Flex 8-Channel 50 \u00b5L",
    "max_ul": 50,
    "min_ul": 1,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   },
   "p50_single": {
@@ -1165,15 +1325,15 @@
    "display": "P50 Single-Channel GEN1",
    "max_ul": 50,
    "min_ul": 5,
-   "note": "no CAD for this pipette body",
-   "support": "unsup"
+   "note": "P50 single-channel GEN1",
+   "support": "cad"
   },
   "p50_single_flex": {
    "channels": 1,
    "display": "Flex 1-Channel 50 \u00b5L",
    "max_ul": 50,
    "min_ul": 1,
-   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "note": "Flex / 96-channel \u2014 this twin is an OT-2",
    "support": "unsup"
   }
  }

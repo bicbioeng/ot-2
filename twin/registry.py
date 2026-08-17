@@ -37,9 +37,16 @@ def check_ledger(analysis):
     reg = load()
     problems, deck = [], []
 
+    # Labware standing on a module is located by moduleId, so resolve it to the
+    # module's slot -- otherwise the deck listing reads "slot ?" for every plate
+    # on a temperature module.
+    mod_slot = {m.get("id"): (m.get("location") or {}).get("slotName")
+                for m in analysis.get("modules", [])}
+
     for lw in analysis.get("labware", []):
         name = lw.get("loadName")
-        slot = (lw.get("location") or {}).get("slotName", "?")
+        loc = lw.get("location") or {}
+        slot = loc.get("slotName") or mod_slot.get(loc.get("moduleId")) or "?"
         e = reg["labware"].get(name)
         if e is None:
             problems.append(f"slot {slot}: {name} — unknown to this Opentrons version")
@@ -59,17 +66,28 @@ def check_ledger(analysis):
         else:
             deck.append(f"{mount} mount: {name}")
 
-    # Modules are never loaded as labware; they appear as their own entries and
-    # as loadModule commands. None are supported, so any use is a hard stop.
+    # Modules appear as their own entries, not as labware.
+    seen_mod = set()
     for m in analysis.get("modules", []):
         model = m.get("model") or m.get("moduleModel") or "?"
-        e = reg["modules"].get(model, {})
-        problems.append(f"module {model} — {e.get('note', 'modules are not modelled')}")
+        slot = (m.get("location") or {}).get("slotName", "?")
+        seen_mod.add(model)
+        e = reg["modules"].get(model)
+        if e is None:
+            problems.append(f"slot {slot}: module {model} — unknown module")
+        elif e["support"] != "cad":
+            problems.append(f"slot {slot}: module {model} — {e['note']}")
+        else:
+            deck.append(f"slot {slot}: module {model} ({e['display']})")
     for c in analysis.get("commands", []):
         if c.get("commandType") == "loadModule":
             model = (c.get("params") or {}).get("model", "?")
-            if not any(model in p for p in problems):
-                problems.append(f"module {model} — modules are not modelled")
+            if model in seen_mod:
+                continue
+            e = reg["modules"].get(model)
+            if e is None or e["support"] != "cad":
+                problems.append(f"module {model} — "
+                                f"{(e or {}).get('note', 'unknown module')}")
 
     return (not problems), problems, deck
 
@@ -86,8 +104,10 @@ def supported_lines():
         if e["support"] == "cad":
             out.append(f"  {n:<44} {e['note']}")
     out.append("")
-    out.append("MODULES: none. Temperature, magnetic, thermocycler, heater-shaker and")
-    out.append("absorbance-reader modules have no geometry and no state in this twin.")
+    out.append("SUPPORTED MODULES")
+    for n, e in sorted(reg["modules"].items()):
+        if e["support"] == "cad":
+            out.append(f"  {n:<44} {e['note']}")
     return out
 
 
