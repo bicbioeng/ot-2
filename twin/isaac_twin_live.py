@@ -360,6 +360,24 @@ def wdef(slot, well):
     return geoms[slot].definition["wells"][well]
 
 
+def well_radius(w):
+    """Effective radius of any Opentrons well.
+
+    Wells are circular ("diameter") OR rectangular ("xDimension"/"yDimension") —
+    every reservoir trough is rectangular, and assuming a diameter crashed the
+    scene build outright. A rectangular well gets the radius of a circle with the
+    SAME cross-sectional area, so volume -> liquid height stays physically correct.
+    Using half the min dimension instead (8 x 70 mm trough -> r=4) would overstate
+    every liquid height by ~11x.
+    """
+    if w.get("diameter"):
+        return w["diameter"] / 2.0
+    dx, dy = w.get("xDimension"), w.get("yDimension")
+    if dx and dy:
+        return math.sqrt(dx * dy / math.pi)
+    return 3.0
+
+
 def labware_origin(slot):
     pos = slots[slot]["position"]; c = geoms[slot].corner
     return pos[0] + c[0], pos[1] + c[1], pos[2] + c[2]
@@ -389,8 +407,8 @@ for slot, g in geoms.items():
 
     for well in g.well_names():
         w = wdef(slot, well)
-        wx, wy, wz, wd_, dia = w["x"], w["y"], w["z"], w["depth"], w["diameter"]
-        r = dia / 2
+        wx, wy, wz, wd_ = w["x"], w["y"], w["z"], w["depth"]
+        r = well_radius(w)
         px, py = ox + wx, oy + wy
         if kind == "tuberack":
             if (slot, well) not in src_wells:
@@ -426,6 +444,7 @@ for slot, g in geoms.items():
             bind(lc, mtl); bind(lb, mtl)
             tube_liq[f"{slot}/{well}"] = {"cone": lc, "body": lb, "din": din, "r": r,
                                           "bot": tube_bot, "rgb": rgb, "rim": oz + wz + wd_,
+                                          "cap": float(w.get("totalLiquidVolume") or 8000.0),
                                           "x": px, "y": py}
         elif kind == "tiprack":
             tl = meta.get("tipLength") or wd_
@@ -602,7 +621,15 @@ except Exception as e:  # noqa: BLE001
 # ------------------------------------ motion planning ------------------------------------
 # Pre-simulate the liquid so each aspirate targets the CURRENT surface (real robots aspirate
 # relative to the liquid, and a falling level means a lower target each time).
-_vol = {k: args.tube_start for k in tube_liq}
+def tube_fill(key):
+    """Starting volume for a source tube, CLAMPED to what the tube actually holds.
+    --tube-start is one number for every deck, but a 15 mL Falcon and a 1.5 mL
+    Eppendorf differ by 10x: 8000 uL in an Eppendorf renders a 148 mm column
+    standing above the gantry. 85% of stated capacity leaves realistic headroom."""
+    return min(args.tube_start, 0.85 * tube_liq[key]["cap"])
+
+
+_vol = {k: tube_fill(k) for k in tube_liq}
 
 
 def tube_surface_abs(key, vol):
@@ -775,13 +802,13 @@ class State:
         self.tip = False; self.tip_vol = 0.0; self.tip_rgb = (0.8, 0.6, 0.2); self.agar_set = False
         self.wells = {k: 0.0 for k in well_liq}
         self.wrgb = {k: (0.35, 0.38, 0.44) for k in well_liq}
-        self.tubes = {k: args.tube_start for k in tube_liq}
+        self.tubes = {k: tube_fill(k) for k in tube_liq}
         self.trash = 0
         show(tip_grp, False); show(tipliq, False)
         for k in well_liq:
             set_well(k, 0.0, (0.35, 0.38, 0.44))
         for k in tube_liq:
-            set_tube(k, args.tube_start)
+            set_tube(k, tube_fill(k))
         for t in rack_tips.values():
             show(t, True)
         for t in trash_tips:
@@ -853,7 +880,7 @@ _g0 = _w0.get("gain", GAIN) if _w0 else GAIN
 _vmax0 = max(_max_vol.values()) if _max_vol else 200.0
 log(f"liquid model: 1 uL = 1 mm^3. Largest well fill {_vmax0:.0f} uL = {h_flat(_vmax0, _r0):.2f} mm true, "
     f"shown {h_flat(_vmax0, _r0)*_g0:.2f} mm at {_g0:.2f}x in a {_w0['depth'] if _w0 else 0:.1f} mm well. "
-    f"Tubes start at {args.tube_start:.0f} uL (surface {h_conical(args.tube_start, 7.45):.1f} mm).")
+    f"Tubes start at min(--tube-start, 85% of each tube's stated capacity).")
 
 if args.save_usd:
     # Fast-forward the whole run so the saved scene shows the finished plate, then write it
@@ -988,7 +1015,7 @@ while True:
         if s > 0:
             time.sleep(s)
     filled = sum(1 for v in state.wells.values() if v > 0)
-    drawn = sum(args.tube_start - v for v in state.tubes.values())
+    drawn = sum(tube_fill(k) - v for k, v in state.tubes.items())
     log(f"pass {pass_no}: {filled}/{len(well_liq)} wells filled, {state.trash} tips in trash, "
         f"{drawn:.0f} uL transferred")
     if args.once:
