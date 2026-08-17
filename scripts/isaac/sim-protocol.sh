@@ -61,6 +61,9 @@ for s, n in sorted(lab, key=lambda x: str(x[0])):
     print(f"    slot {str(s):<3} {n}")
 PY
 
+echo "==> 1b   checking every item against the equipment registry"
+"$REPO/.venv/bin/python" -m twin.registry --check "$OUT/analysis.json" || exit 2
+
 echo "==> 2/4  shipping the ledger to $HOST"
 ssh "$HOST" "mkdir -p /mnt/ssd/isaac-sim/workspace/ledgers/$NAME"
 rsync -a "$OUT/analysis.json" "$HOST:/mnt/ssd/isaac-sim/workspace/ledgers/$NAME/"

@@ -1,0 +1,1180 @@
+{
+ "labware": {
+  "agilent_1_reservoir_290ml": {
+   "category": "reservoir",
+   "display": "Agilent 1 Well Reservoir 290 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 1
+  },
+  "appliedbiosystemsmicroamp_384_wellplate_40ul": {
+   "category": "wellPlate",
+   "display": "Applied Biosystems MicroAmp 384 Well Plate 40 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "armadillo_96_wellplate_200ul_pcr_full_skirt": {
+   "category": "wellPlate",
+   "display": "Armadillo 96 Well Plate 200 \u00b5L PCR Full Skirt",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "axygen_1_reservoir_90ml": {
+   "category": "reservoir",
+   "display": "Axygen 1 Well Reservoir 90 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 1
+  },
+  "axygen_96_wellplate_500ul": {
+   "category": "wellPlate",
+   "display": "Axygen 96 Well Plate 500 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "biorad_384_wellplate_50ul": {
+   "category": "wellPlate",
+   "display": "Bio-Rad 384 Well Plate 50 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "biorad_96_wellplate_200ul_pcr": {
+   "category": "wellPlate",
+   "display": "Bio-Rad 96 Well Plate 200 \u00b5L PCR",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "black_96_well_microtiter_plate_lid": {
+   "category": "lid",
+   "display": "Black 96-well Microtiter Plate Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "corning_12_wellplate_6.9ml_flat": {
+   "category": "wellPlate",
+   "display": "Corning 12 Well Plate 6.9 mL Flat",
+   "note": "12-well plate, cavities cut",
+   "support": "cad",
+   "wells": 12
+  },
+  "corning_24_wellplate_3.4ml_flat": {
+   "category": "wellPlate",
+   "display": "Corning 24 Well Plate 3.4 mL Flat",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 24
+  },
+  "corning_384_wellplate_112ul_flat": {
+   "category": "wellPlate",
+   "display": "Corning 384 Well Plate 112 \u00b5L Flat",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "corning_48_wellplate_1.6ml_flat": {
+   "category": "wellPlate",
+   "display": "Corning 48 Well Plate 1.6 mL Flat",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 48
+  },
+  "corning_6_wellplate_16.8ml_flat": {
+   "category": "wellPlate",
+   "display": "Corning 6 Well Plate 16.8 mL Flat",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 6
+  },
+  "corning_96_wellplate_330ul": {
+   "category": "wellPlate",
+   "display": "Corning 96 Well Plate 330 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "corning_96_wellplate_360ul_flat": {
+   "category": "wellPlate",
+   "display": "Corning 96 Well Plate 360 \u00b5L Flat",
+   "note": "96-well plate, cavities cut",
+   "support": "cad",
+   "wells": 96
+  },
+  "corning_96_wellplate_360ul_lid": {
+   "category": "lid",
+   "display": "Corning 96 Wellplate 360ul Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "corning_falcon_384_wellplate_130ul_flat": {
+   "category": "wellPlate",
+   "display": "Corning Falcon 384 Well Microtest Plate 130 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "corning_falcon_384_wellplate_130ul_flat_lid": {
+   "category": "lid",
+   "display": "Corning Falcon 384 Well Microtest Plate 130 \u00b5L Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "costar_96_wellplate_2.2ml": {
+   "category": "wellPlate",
+   "display": "Costar 96 Well Plate 2.2 mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_384_wellplate_45ul": {
+   "category": "wellPlate",
+   "display": "Eppendorf 384 Well Plate 45 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "eppendorf_96_tiprack_1000ul_eptips": {
+   "category": "tipRack",
+   "display": "Eppendorf epT.I.P.S. 96 Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_tiprack_10ul_eptips": {
+   "category": "tipRack",
+   "display": "Eppendorf epT.I.P.S. 96 Tip Rack 10 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_1000ul": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Well Plate 1000 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_150ul": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Well Plate 150 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_2000ul": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Well Plate 2 mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_2000ul_lobind": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Protein LoBind Deepwell Plate 2 mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_350ul_lobind": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Well DNA LoBind Microplate 350 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_500ul": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Well Plate 500 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "eppendorf_96_wellplate_500ul_lobind": {
+   "category": "wellPlate",
+   "display": "Eppendorf 96 Protein LoBind Deepwell Plate 500 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "ev_resin_tips_flex_96_labware": {
+   "category": "wellPlate",
+   "display": "Opentrons Flex EV Resin Tips Top Adapter with Third-party Evotips",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "ev_resin_tips_flex_96_tiprack_adapter": {
+   "category": "adapter",
+   "display": "Opentrons Flex EV Resin Tips Tall Adapter for Third-party Evotips in 96 Tip Rack Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "ev_resin_tips_flex_short_adapter": {
+   "category": "adapter",
+   "display": "Opentrons Flex EV Resin Tips Short Adapter for Third-party Evotips",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "ev_resin_tips_flex_tall_adapter": {
+   "category": "adapter",
+   "display": "Opentrons Flex EV Resin Tips Tall Adapter for Third-party Evotips",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "geb_96_tiprack_1000ul": {
+   "category": "tipRack",
+   "display": "GEB 96 Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "geb_96_tiprack_10ul": {
+   "category": "tipRack",
+   "display": "GEB 96 Tip Rack 10 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "greiner_384_wellplate_240ul": {
+   "category": "wellPlate",
+   "display": "Greiner 384 Well Plate 240 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "greiner_96_wellplate_323ul": {
+   "category": "wellPlate",
+   "display": "Greiner 96 Well Plate 323 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "greiner_96_wellplate_340ul_chimney": {
+   "category": "wellPlate",
+   "display": "Greiner 96 Well Plate 340 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "greiner_96_wellplate_382ul": {
+   "category": "wellPlate",
+   "display": "Greiner 96 Well Plate 382 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "ibidi_96_square_well_plate_300ul": {
+   "category": "wellPlate",
+   "display": "ibidi 96 Square Well Flat Bottom Plate 300 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "ibidi_96_square_well_plate_300ul_lid": {
+   "category": "lid",
+   "display": "ibidi 96 Square Well Flat Bottom Plate 300 \u00b5L Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "milliplex_r_96_well_microtiter_plate": {
+   "category": "wellPlate",
+   "display": "MILLIPLEX (R) 96-well Microtiter Plate",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "nest_12_reservoir_15ml": {
+   "category": "reservoir",
+   "display": "NEST 12 Well Reservoir 15 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 12
+  },
+  "nest_12_reservoir_22ml": {
+   "category": "reservoir",
+   "display": "NEST 12 Well Reservoir 22 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 12
+  },
+  "nest_1_reservoir_195ml": {
+   "category": "reservoir",
+   "display": "NEST 1 Well Reservoir 195 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 1
+  },
+  "nest_1_reservoir_290ml": {
+   "category": "reservoir",
+   "display": "NEST 1 Well Reservoir 290 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 1
+  },
+  "nest_24_wellplate_10.4ml": {
+   "category": "wellPlate",
+   "display": "NEST 24 Well Plate 10.4mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 24
+  },
+  "nest_8_reservoir_22ml": {
+   "category": "reservoir",
+   "display": "NEST 8 Well Reservoir 22 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 8
+  },
+  "nest_96_wellplate_100ul_pcr_full_skirt": {
+   "category": "wellPlate",
+   "display": "NEST 96 Well Plate 100 \u00b5L PCR Full Skirt",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "nest_96_wellplate_200ul_flat": {
+   "category": "wellPlate",
+   "display": "NEST 96 Well Plate 200 \u00b5L Flat",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "nest_96_wellplate_2ml_deep": {
+   "category": "wellPlate",
+   "display": "NEST 96 Deep Well Plate 2 mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "nunc_384_wellplate_100ul": {
+   "category": "wellPlate",
+   "display": "Nunc 384 Well Plate 100 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "nunc_96_wellplate_450ul": {
+   "category": "wellPlate",
+   "display": "Nunc 96 Well Plate 450 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_10_tuberack_falcon_4x50ml_6x15ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 10 Tube Rack with Falcon 4x50 mL, 6x15 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 10
+  },
+  "opentrons_10_tuberack_falcon_4x50ml_6x15ml_conical_acrylic": {
+   "category": "tubeRack",
+   "display": "Opentrons 10 Tube Rack (Acrylic) with Falcon 4x50 mL, 6x15 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 10
+  },
+  "opentrons_10_tuberack_nest_4x50ml_6x15ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 10 Tube Rack with NEST 4x50 mL, 6x15 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 10
+  },
+  "opentrons_15_tuberack_eppendorf_15ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 15 Tube Rack with Eppendorf 15 mL",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 15
+  },
+  "opentrons_15_tuberack_falcon_15ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 15 Tube Rack with Falcon 15 mL Conical",
+   "note": "15 mL Falcon rack + conical tube geometry",
+   "support": "cad",
+   "wells": 15
+  },
+  "opentrons_15_tuberack_nest_15ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 15 Tube Rack with NEST 15 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 15
+  },
+  "opentrons_1_trash_1100ml_fixed": {
+   "category": "trash",
+   "display": "Opentrons Fixed Trash",
+   "note": "open trash bin, discarded tips accumulate",
+   "support": "cad",
+   "wells": 1
+  },
+  "opentrons_1_trash_3200ml_fixed": {
+   "category": "trash",
+   "display": "Opentrons Fixed Trash",
+   "note": "only the fixed 1100 mL trash is modelled",
+   "support": "unsup",
+   "wells": 1
+  },
+  "opentrons_1_trash_850ml_fixed": {
+   "category": "trash",
+   "display": "Opentrons Short Fixed Trash",
+   "note": "only the fixed 1100 mL trash is modelled",
+   "support": "unsup",
+   "wells": 1
+  },
+  "opentrons_24_aluminumblock_generic_2ml_screwcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with Generic 2 mL Screwcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_aluminumblock_nest_0.5ml_screwcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with NEST 0.5 mL Screwcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_aluminumblock_nest_1.5ml_screwcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with NEST 1.5 mL Screwcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_aluminumblock_nest_1.5ml_snapcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with NEST 1.5 mL Snapcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_aluminumblock_nest_2ml_screwcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with NEST 2 mL Screwcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_aluminumblock_nest_2ml_snapcap": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 24 Well Aluminum Block with NEST 2 mL Snapcap",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_eppendorf_2ml_safelock_snapcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with Eppendorf 2 mL Safe-Lock Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_eppendorf_2ml_safelock_snapcap_acrylic": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack (Acrylic) with Eppendorf 2 mL Safe-Lock Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_generic_0.75ml_snapcap_acrylic": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack (Acrylic) with Generic 0.75 mL Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_generic_2ml_screwcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with Generic 2 mL Screwcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_nest_0.5ml_screwcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with NEST 0.5 mL Screwcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_nest_1.5ml_screwcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with NEST 1.5 mL Screwcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_nest_1.5ml_snapcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with NEST 1.5 mL Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_nest_2ml_screwcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with NEST 2 mL Screwcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_24_tuberack_nest_2ml_snapcap": {
+   "category": "tubeRack",
+   "display": "Opentrons 24 Tube Rack with NEST 2 mL Snapcap",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 24
+  },
+  "opentrons_40_aluminumblock_eppendorf_24x2ml_safelock_snapcap_generic_16x0.2ml_pcr_strip": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 40 Well Aluminum Block with Eppendorf 24x2 mL Safe-Lock Snapcap, Generic 16x0.2 mL PCR Strip",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 40
+  },
+  "opentrons_6_tuberack_falcon_50ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 6 Tube Rack with Falcon 50 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 6
+  },
+  "opentrons_6_tuberack_nest_50ml_conical": {
+   "category": "tubeRack",
+   "display": "Opentrons 6 Tube Rack with NEST 50 mL Conical",
+   "note": "no tube geometry for this rack \u2014 only the 15 mL Falcon is modelled",
+   "support": "unsup",
+   "wells": 6
+  },
+  "opentrons_96_aluminumblock_biorad_wellplate_200ul": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 96 Well Aluminum Block with Bio-Rad Well Plate 200 \u00b5L",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_aluminumblock_generic_pcr_strip_200ul": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 96 Well Aluminum Block with Generic PCR Strip 200 \u00b5L",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_aluminumblock_nest_wellplate_100ul": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 96 Well Aluminum Block with NEST Well Plate 100 \u00b5L",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_deep_well_adapter": {
+   "category": "adapter",
+   "display": "Opentrons 96 Deep Well Heater-Shaker Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_96_deep_well_adapter_nest_wellplate_2ml_deep": {
+   "category": "adapter",
+   "display": "Opentrons 96 Deep Well Heater-Shaker Adapter with NEST Deep Well Plate 2 mL",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_deep_well_temp_mod_adapter": {
+   "category": "adapter",
+   "display": "Opentrons 96 Deep Well Temperature Module Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_96_filtertiprack_1000ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Filter Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_filtertiprack_10ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Filter Tip Rack 10 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_filtertiprack_200ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Filter Tip Rack 200 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_filtertiprack_20ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Filter Tip Rack 20 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_flat_bottom_adapter": {
+   "category": "adapter",
+   "display": "Opentrons 96 Flat Bottom Heater-Shaker Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_96_flat_bottom_adapter_nest_wellplate_200ul_flat": {
+   "category": "adapter",
+   "display": "Opentrons 96 Flat Bottom Heater-Shaker Adapter with NEST 96 Well Plate 200 \u00b5L Flat",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_pcr_adapter": {
+   "category": "adapter",
+   "display": "Opentrons 96 PCR Heater-Shaker Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_pcr_adapter_armadillo_wellplate_200ul": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 96 PCR Heater-Shaker Adapter with Armadillo Well Plate 200 \u00b5l",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_pcr_adapter_nest_wellplate_100ul_pcr_full_skirt": {
+   "category": "adapter",
+   "display": "Opentrons 96 PCR Heater-Shaker Adapter with NEST Well Plate 100 \u00b5l",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_tiprack_1000ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_tiprack_10ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Tip Rack 10 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_tiprack_20ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Tip Rack 20 \u00b5L",
+   "note": "20 uL tips, individually removable",
+   "support": "cad",
+   "wells": 96
+  },
+  "opentrons_96_tiprack_300ul": {
+   "category": "tipRack",
+   "display": "Opentrons OT-2 96 Tip Rack 300 \u00b5L",
+   "note": "300 uL tips, individually removable",
+   "support": "cad",
+   "wells": 96
+  },
+  "opentrons_96_well_aluminum_block": {
+   "category": "aluminumBlock",
+   "display": "Opentrons 96 Well Aluminum Block",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_96_wellplate_200ul_pcr_full_skirt": {
+   "category": "wellPlate",
+   "display": "Opentrons Tough 96 Well Plate 200 \u00b5L PCR Full Skirt",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_aluminum_flat_bottom_plate": {
+   "category": "aluminumBlock",
+   "display": "Opentrons Aluminum Flat Bottom Plate",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_calibration_adapter_heatershaker_module": {
+   "category": "other",
+   "display": "Opentrons Calibration Adapter - Heater-shaker Module",
+   "note": "not modelled",
+   "support": "unsup",
+   "wells": 2
+  },
+  "opentrons_calibration_adapter_temperature_module": {
+   "category": "other",
+   "display": "Opentrons Calibration Adapter - Temperature Module",
+   "note": "not modelled",
+   "support": "unsup",
+   "wells": 2
+  },
+  "opentrons_calibration_adapter_thermocycler_module": {
+   "category": "other",
+   "display": "Opentrons Calibration Adapter - Thermocycler Module",
+   "note": "not modelled",
+   "support": "unsup",
+   "wells": 2
+  },
+  "opentrons_calibrationblock_short_side_left": {
+   "category": "aluminumBlock",
+   "display": "Opentrons Calibration Block - Short Side: Left",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 2
+  },
+  "opentrons_calibrationblock_short_side_right": {
+   "category": "aluminumBlock",
+   "display": "Opentrons Calibration Block - Short Side: Right",
+   "note": "aluminium blocks are not modelled",
+   "support": "unsup",
+   "wells": 2
+  },
+  "opentrons_flex_96_filtertiprack_1000ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Filter Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_filtertiprack_200ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Filter Tip Rack 200 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_filtertiprack_20ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Filter Tip Rack 20 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_filtertiprack_50ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Filter Tip Rack 50 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_tiprack_1000ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Tip Rack 1000 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_tiprack_200ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Tip Rack 200 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_tiprack_20ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Tip Rack 20 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_tiprack_50ul": {
+   "category": "tipRack",
+   "display": "Opentrons Flex 96 Tip Rack 50 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "opentrons_flex_96_tiprack_adapter": {
+   "category": "adapter",
+   "display": "Opentrons Flex 96 Tip Rack Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_flex_deck_riser": {
+   "category": "adapter",
+   "display": "Opentrons Flex Deck Riser",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_flex_lid_absorbance_plate_reader_module": {
+   "category": "other",
+   "display": "Opentrons Absorbance Plate Reader Module Lid",
+   "note": "not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_flex_tiprack_lid": {
+   "category": "lid",
+   "display": "Opentrons Flex Tip Rack Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_tough_12_reservoir_22ml": {
+   "category": "reservoir",
+   "display": "Opentrons Tough 22mL 12 Well Reservoir",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 12
+  },
+  "opentrons_tough_1_reservoir_300ml": {
+   "category": "reservoir",
+   "display": "Opentrons Tough 300 mL 1 Well Reservoir",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 1
+  },
+  "opentrons_tough_4_reservoir_72ml": {
+   "category": "reservoir",
+   "display": "Opentrons Tough 72 mL 4 Well Reservoir",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 4
+  },
+  "opentrons_tough_pcr_auto_sealing_lid": {
+   "category": "lid",
+   "display": "Opentrons Tough PCR Auto-Sealing Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_tough_universal_lid": {
+   "category": "lid",
+   "display": "Opentrons Tough Universal Lid",
+   "note": "lids are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_universal_flat_adapter": {
+   "category": "adapter",
+   "display": "Opentrons Universal Flat Heater-Shaker Adapter",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "opentrons_universal_flat_adapter_corning_384_wellplate_112ul_flat": {
+   "category": "adapter",
+   "display": "Opentrons Universal Flat Heater-Shaker Adapter with Corning 384 Well Plate 112 \u00b5l Flat",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 384
+  },
+  "opentrons_universal_flat_adapter_type_b": {
+   "category": "adapter",
+   "display": "Opentrons Universal Flat Heater-Shaker Adapter Type B",
+   "note": "deck adapters are not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "protocol_engine_lid_stack_object": {
+   "category": "system",
+   "display": "Protocol Engine Lid Stack",
+   "note": "not modelled",
+   "support": "unsup",
+   "wells": 0
+  },
+  "smc_384_read_plate": {
+   "category": "wellPlate",
+   "display": "SMC 384 Well Commercial Read Plate",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 384
+  },
+  "thermoscientific_96_wellplate_800ul": {
+   "category": "wellPlate",
+   "display": "Thermo Fisher Scientific 96 Well Plate 800 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "thermoscientific_abgene_96_wellplate_1.2ml": {
+   "category": "wellPlate",
+   "display": "Thermo Scientific ABgene 96 Well Plate 1.2mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "thermoscientificnunc_96_wellplate_1300ul": {
+   "category": "wellPlate",
+   "display": "Thermo Scientific Nunc 96 Well Plate 1300 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "thermoscientificnunc_96_wellplate_2000ul": {
+   "category": "wellPlate",
+   "display": "Thermo Scientific Nunc 96 Well Plate 2000 \u00b5L",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  },
+  "tipone_96_tiprack_200ul": {
+   "category": "tipRack",
+   "display": "TipOne 96 Tip Rack 200 \u00b5L",
+   "note": "no CAD body for this tip rack",
+   "support": "unsup",
+   "wells": 96
+  },
+  "usascientific_12_reservoir_22ml": {
+   "category": "reservoir",
+   "display": "USA Scientific 12 Well Reservoir 22 mL",
+   "note": "trough wells are not modelled (rectangular, not circular)",
+   "support": "unsup",
+   "wells": 12
+  },
+  "usascientific_96_wellplate_2.4ml_deep": {
+   "category": "wellPlate",
+   "display": "USA Scientific 96 Deep Well Plate 2.4 mL",
+   "note": "no CAD body for this plate",
+   "support": "unsup",
+   "wells": 96
+  }
+ },
+ "modules": {
+  "absorbanceReaderV1": {
+   "display": "Absorbance Plate Reader Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "absorbanceReaderType"
+  },
+  "flexStackerModuleV1": {
+   "display": "Flex Stacker Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "flexStackerModuleType"
+  },
+  "heaterShakerModuleV1": {
+   "display": "Heater-Shaker Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "heaterShakerModuleType"
+  },
+  "magneticBlockV1": {
+   "display": "Magnetic Block GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "magneticBlockType"
+  },
+  "magneticModuleV1": {
+   "display": "Magnetic Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "magneticModuleType"
+  },
+  "magneticModuleV2": {
+   "display": "Magnetic Module GEN2",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "magneticModuleType"
+  },
+  "temperatureModuleV1": {
+   "display": "Temperature Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "temperatureModuleType"
+  },
+  "temperatureModuleV2": {
+   "display": "Temperature Module GEN2",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "temperatureModuleType"
+  },
+  "thermocyclerModuleV1": {
+   "display": "Thermocycler Module GEN1",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "thermocyclerModuleType"
+  },
+  "thermocyclerModuleV2": {
+   "display": "Thermocycler Module GEN2",
+   "note": "hardware modules are not modelled (no geometry, no thermal/motion state)",
+   "support": "unsup",
+   "type": "thermocyclerModuleType"
+  }
+ },
+ "opentrons_version": "8.8.2",
+ "pipettes": {
+  "p1000_96": {
+   "channels": 96,
+   "display": "Flex 96-Channel 1000 \u00b5L",
+   "max_ul": 1000,
+   "min_ul": 5,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p1000_multi_em_flex": {
+   "channels": 8,
+   "display": "Flex 8-Channel EM 1000 \u00b5L",
+   "max_ul": 1000,
+   "min_ul": 5,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  },
+  "p1000_multi_flex": {
+   "channels": 8,
+   "display": "Flex 8-Channel 1000 \u00b5L",
+   "max_ul": 1000,
+   "min_ul": 5,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  },
+  "p1000_single": {
+   "channels": 1,
+   "display": "P1000 Single-Channel GEN1",
+   "max_ul": 1000,
+   "min_ul": 100,
+   "note": "no CAD for this pipette body",
+   "support": "unsup"
+  },
+  "p1000_single_flex": {
+   "channels": 1,
+   "display": "Flex 1-Channel 1000 \u00b5L",
+   "max_ul": 1000,
+   "min_ul": 5,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  },
+  "p1000_single_gen2": {
+   "channels": 1,
+   "display": "P1000 Single-Channel GEN2",
+   "max_ul": 1000,
+   "min_ul": 100,
+   "note": "no CAD for this pipette body",
+   "support": "unsup"
+  },
+  "p10_multi": {
+   "channels": 8,
+   "display": "P10 8-Channel GEN1",
+   "max_ul": 10,
+   "min_ul": 1,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p10_single": {
+   "channels": 1,
+   "display": "P10 Single-Channel GEN1",
+   "max_ul": 10,
+   "min_ul": 1,
+   "note": "no CAD for this pipette body",
+   "support": "unsup"
+  },
+  "p200_96": {
+   "channels": 96,
+   "display": "Flex 96-Channel 200 \u00b5L",
+   "max_ul": 200,
+   "min_ul": 5,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  },
+  "p20_multi_gen2": {
+   "channels": 8,
+   "display": "P20 8-Channel GEN2",
+   "max_ul": 20,
+   "min_ul": 1,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p20_single_gen2": {
+   "channels": 1,
+   "display": "P20 Single-Channel GEN2",
+   "max_ul": 20,
+   "min_ul": 1,
+   "note": "P20 single-channel GEN2",
+   "support": "cad"
+  },
+  "p300_multi": {
+   "channels": 8,
+   "display": "P300 8-Channel GEN1",
+   "max_ul": 300,
+   "min_ul": 30,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p300_multi_gen2": {
+   "channels": 8,
+   "display": "P300 8-Channel GEN2",
+   "max_ul": 300,
+   "min_ul": 20,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p300_single": {
+   "channels": 1,
+   "display": "P300 Single-Channel GEN1",
+   "max_ul": 300,
+   "min_ul": 30,
+   "note": "no CAD for this pipette body",
+   "support": "unsup"
+  },
+  "p300_single_gen2": {
+   "channels": 1,
+   "display": "P300 Single-Channel GEN2",
+   "max_ul": 300,
+   "min_ul": 20,
+   "note": "P300 single-channel GEN2",
+   "support": "cad"
+  },
+  "p50_multi": {
+   "channels": 8,
+   "display": "P50 8-Channel GEN1",
+   "max_ul": 50,
+   "min_ul": 5,
+   "note": "multi-channel: the twin models one nozzle per mount",
+   "support": "unsup"
+  },
+  "p50_multi_flex": {
+   "channels": 8,
+   "display": "Flex 8-Channel 50 \u00b5L",
+   "max_ul": 50,
+   "min_ul": 1,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  },
+  "p50_single": {
+   "channels": 1,
+   "display": "P50 Single-Channel GEN1",
+   "max_ul": 50,
+   "min_ul": 5,
+   "note": "no CAD for this pipette body",
+   "support": "unsup"
+  },
+  "p50_single_flex": {
+   "channels": 1,
+   "display": "Flex 1-Channel 50 \u00b5L",
+   "max_ul": 50,
+   "min_ul": 1,
+   "note": "Flex pipette \u2014 this twin is an OT-2",
+   "support": "unsup"
+  }
+ }
+}

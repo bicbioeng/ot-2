@@ -38,6 +38,13 @@ fi
 # analyze exits 0 even when the protocol errors; the verdict is inside the JSON.
 python3 "$(dirname "$0")/.isaac-run-check.py" "$DEST/analysis.json" || exit 1
 
+echo "==> 1b   checking every item against the equipment registry"
+# NOTE: do NOT delete $DEST on refusal. The service may already be streaming a
+# ledger of this name from an earlier run, and removing it under a live run
+# leaves the unit crash-looping. Rejection happens before the service is
+# re-pointed, so a stale ledger on disk is harmless.
+python3 /mnt/ssd/isaac-sim/workspace/twin/registry.py --check "$DEST/analysis.json" || exit 2
+
 chmod -R 777 "$DEST" 2>/dev/null || true
 echo "==> 2/4  ledger stored at $DEST"
 echo "==> 3/4  pointing the sim at it (speed ${SPEED}x)"
