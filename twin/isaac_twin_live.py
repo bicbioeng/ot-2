@@ -97,6 +97,19 @@ import carb  # noqa: E402
 _settings = carb.settings.get_settings()
 _settings.set("/app/window/drawMouse", True)
 _settings.set("/app/livestream/allowResize", True)
+# WHY THIS MATTERS: RTX treats UsdPreviewSurface `opacity` as STOCHASTIC CUTOUT, not true
+# transparency, unless fractional cutout opacity is on. A tube wall at opacity 0.2 is then
+# not "80% see-through" — it is a dithered mask, and whatever sits behind it (the entire
+# reagent column inside every Falcon tube) never renders. Plate wells looked fine only
+# because you view them straight down an open cavity, with no material in the line of sight.
+# No amount of opacity/roughness/ior tuning fixes this; the renderer has to be told.
+# Ref: docs.isaacsim.omniverse.nvidia.com -> reference_material/rendering_modes
+for _k in ("/rtx/pathtracing/fractionalCutoutOpacity",
+           "/rtx/raytracing/fractionalCutoutOpacity"):
+    try:
+        _settings.set(_k, True)
+    except Exception:
+        pass
 if not _experience and not args.validate:
     try:
         from isaacsim.core.utils.extensions import enable_extension
@@ -309,10 +322,18 @@ MAT = {
     "pip":   M("/World/mat/pip", (0.94, 0.95, 0.96), roughness=0.32),
     "table": M("/World/mat/table", (0.17, 0.18, 0.21), roughness=0.75),
     "rack":  M("/World/mat/rack", (0.13, 0.14, 0.17), roughness=0.55),
+    # A tube rack is a 45 mm block and an 8 mL fill only reaches 59 mm, so an OPAQUE rack
+    # buries most of the reagent column. Translucent, so the level reads through the block.
+    "turack": M("/World/mat/turack", (0.62, 0.65, 0.71), roughness=0.44, opacity=0.30, ior=1.46),
     # Clear lab PLASTIC, not glass: low roughness + low opacity renders as chrome under a dome
     # light and mirrors away the liquid inside. Frosted polypropylene reads as see-through.
+    # This was fixed for "plate" but NOT for "glass", so every tube rendered as a silver rod
+    # and no reagent colour was ever visible in a Falcon tube. A 15 mL conical IS translucent
+    # polypropylene, not glass — so matching the plate is both the fix and the accurate material.
     "plate": M("/World/mat/plate", (0.90, 0.93, 0.96), roughness=0.30, opacity=0.40, ior=1.46),
-    "glass": M("/World/mat/glass", (0.95, 0.97, 0.99), roughness=0.22, opacity=0.13, ior=1.46),
+    # NO ior: with one, RTX treats the shell as a refractive solid and the interior — the whole
+    # reagent column — is swallowed. Without it, opacity is plain alpha and the liquid shows.
+    "glass": M("/World/mat/glass", (0.92, 0.94, 0.97), roughness=0.40, opacity=0.22),
     "tip":   M("/World/mat/tip", (0.88, 0.90, 0.86), roughness=0.32, opacity=0.60, ior=1.49),
 }
 _tw = max(x1 - x0, y1 - y0) / 2 + 300
@@ -356,7 +377,8 @@ for slot, g in geoms.items():
         bodym, nt = add_mesh(f"/World/lw_{slot}/body", mesh_file,
                              (0.90, 0.93, 0.96) if kind == "plate" else (0.13, 0.14, 0.17))
         UsdGeom.XformCommonAPI(bodym).SetTranslate(Gf.Vec3d(ox, oy, oz))
-        bind(bodym, MAT["plate"] if kind == "plate" else MAT["rack"])
+        bind(bodym, MAT["plate"] if kind == "plate"
+             else MAT["turack"] if kind == "tuberack" else MAT["rack"])
         log(f"  slot {slot} {g.load_name}: CAD body {nt} tris ({kind}, cavities cut)")
     else:
         xd, yd, zd = g.dims
@@ -389,9 +411,16 @@ for slot, g in geoms.items():
                 bind(make_cyl(f"/World/lw_{slot}/tube_{well}_b",
                               (px, py, tube_bot + CONE_H + body_h / 2), r + 0.9, body_h), MAT["glass"])
             rgb = REAGENT[(slot, well)]
+            # The reagent column is drawn at the tube's OUTER radius, not inside it. Inside,
+            # it is only visible THROUGH the wall — and RTX renders UsdPreviewSurface opacity
+            # as a stochastic cutout mask, so the interior of every tube stayed empty no
+            # matter how the wall material was tuned. Drawing the column as the outermost
+            # surface puts no transparency in the light path at all: the camera hits the
+            # liquid directly, which is exactly how a filled tube reads in a photograph.
+            _lr = r * 1.17                       # ~8.6 mm: just proud of the 8.5 mm shell
             lc = make_cone(f"/World/lw_{slot}/liq_{well}_c", (px, py, tube_bot + CONE_H / 2),
-                           r * 0.99, CONE_H, rgb, flip=True)
-            lb = make_cyl(f"/World/lw_{slot}/liq_{well}_b", (px, py, tube_bot + CONE_H), r * 0.99, 1.0, rgb)
+                           _lr, CONE_H, rgb, flip=True)
+            lb = make_cyl(f"/World/lw_{slot}/liq_{well}_b", (px, py, tube_bot + CONE_H), _lr, 1.0, rgb)
             # opaque: a reagent column seen THROUGH a tube wall must not also be see-through
             mtl, din = make_pbr(f"/World/mat/liq_{slot}_{well}", rgb, roughness=0.28, opacity=1.0)
             bind(lc, mtl); bind(lb, mtl)
@@ -806,6 +835,18 @@ class State:
 
 
 state = State()
+
+# Tube liquid renders behind a translucent wall, so "it is there" cannot be taken on trust —
+# an empty-looking tube is a silent failure. Report the actual prim state, not the intent.
+for _k in list(tube_liq)[:4]:
+    _t = tube_liq[_k]
+    _cp, _bp = UsdGeom.Imageable(_t["cone"]), UsdGeom.Imageable(_t["body"])
+    _bb = _bp.ComputeWorldBound(0.0, UsdGeom.Tokens.default_).ComputeAlignedBox()
+    log(f"  tube {_k}: {state.tubes[_k]:.0f} uL -> surface "
+        f"{h_conical(state.tubes[_k], _t['r']):.1f} mm | cone vis={_cp.ComputeVisibility()} "
+        f"body vis={_bp.ComputeVisibility()} h={_t['body'].GetHeightAttr().Get():.1f} "
+        f"z={_bb.GetMin()[2]:.1f}..{_bb.GetMax()[2]:.1f} rgb={_t['rgb']}")
+
 _r0 = list(well_liq.values())[0]["r"] if well_liq else 11.4
 _w0 = list(well_liq.values())[0] if well_liq else None
 _g0 = _w0.get("gain", GAIN) if _w0 else GAIN
