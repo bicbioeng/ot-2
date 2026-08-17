@@ -108,6 +108,32 @@ exact physical scale.
 
 ---
 
+## Machine motion rules
+
+A ledger records **where** each command acts and never **how** the arm gets there. Replaying it
+naively — travel to every command's coordinate in turn — invents motion the real OT-2 never
+makes. Each rule below is a correction to that naive replay, and they are collected in one
+block in `twin/isaac_twin_live.py` (search `machine motion rules`) rather than scattered, so
+every newly replicated protocol inherits them.
+
+| Rule | Behaviour | Why the naive replay is wrong |
+|---|---|---|
+| **R1** | Park over the fixed trash (back-right) at the start of a run and for the whole of any `protocol.delay()` | Parking at deck centre leaves the gantry hovering over the very wells it is waiting on, and a residual drip lands on a labware lid instead of in the bin |
+| **R2** | Consecutive commands on the **same well** do not retract to travel height — the tip stays down and only its depth changes | `dispense` → `blowout` is one continuous action at one well. Retracting between them renders a second plunge into the well that never physically happens |
+
+Each run logs which rules fired, so the effect is visible rather than assumed:
+
+```
+motion rules: R1 park over trash (354,335); R2 merged 24 in-well step(s) — no re-entry between them
+```
+
+On the PRISM chemotaxis protocol R2 halves plate entries from 48 to 24 — well A1 goes from
+4 plunges to its true 2 × 200 µL — while the pass totals are unchanged
+(`12/12 wells filled, 24 tips in trash, 4800 uL transferred`). That invariant is the test:
+**a motion rule may only change how the arm moves, never what the protocol does.**
+
+---
+
 ## What it checks
 
 Every run writes `/mnt/ssd/isaac-sim/workspace/out/isaac_live_report.json`:

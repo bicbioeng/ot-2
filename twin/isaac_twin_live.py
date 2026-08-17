@@ -64,6 +64,9 @@ ap.add_argument("--ui", action="store_true",
 ap.add_argument("--snapshot", default="",
                 help="render the scene to PNGs after fast-forwarding the run, then exit "
                      "(self-check: proves what is ACTUALLY visible, not what a counter says)")
+ap.add_argument("--save-usd", default="",
+                help="export the built scene to a .usd/.usda file and exit — gives a real file "
+                     "you can File>Open in any Isaac Sim session, edit, and share")
 ap.add_argument("--snapshot-ops", type=int, default=0,
                 help="how many protocol ops to apply before the snapshot (0 = all)")
 args, _kit_argv = ap.parse_known_args()
@@ -78,9 +81,11 @@ STREAMING_KIT = "/isaac-sim/apps/isaacsim.exp.full.streaming.kit"
 log(f"booting SimulationApp (gpu={args.gpu}); kit args: {_kit_argv}")
 from isaacsim import SimulationApp  # noqa: E402
 _cfg = {"headless": True, "active_gpu": args.gpu, "physics_gpu": args.gpu, "multi_gpu": False}
-if args.validate:
-    # minimal boot: fast. NOTE: it does not load the RTX material pipeline, so it must
-    # never be used for snapshots — everything renders untextured grey.
+if args.validate or args.save_usd:
+    # minimal boot: fast, and it does not open the WebRTC port. Correct for anything that
+    # does not RENDER — validation and USD export both just author/inspect the stage.
+    # NOTE: it does not load the RTX material pipeline, so it must never be used for
+    # snapshots — those would come out untextured grey.
     sim = SimulationApp(_cfg); _experience = False
 elif os.path.exists(STREAMING_KIT):
     sim = SimulationApp(_cfg, experience=STREAMING_KIT); _experience = True
@@ -107,7 +112,7 @@ for _ in range(6):
 log("livestream ready; WebRTC signaling on host :49100")
 
 import numpy as np  # noqa: E402
-from pxr import UsdGeom, UsdLux, UsdShade, Gf, Sdf  # noqa: E402
+from pxr import UsdGeom, UsdLux, UsdShade, Gf, Sdf, Vt  # noqa: E402
 import omni.usd  # noqa: E402
 
 sys.path.insert(0, args.twin_root)
@@ -274,8 +279,11 @@ def show(g, v):
 def add_mesh(path, stl, rgb):
     pts, counts, idx = read_binary_stl(stl)
     m = UsdGeom.Mesh.Define(stage, path)
-    m.CreatePointsAttr([Gf.Vec3f(*p) for p in pts.tolist()])
-    m.CreateFaceVertexCountsAttr(counts); m.CreateFaceVertexIndicesAttr(idx)
+    # Vt arrays take numpy directly. Building Gf.Vec3f one point at a time cost ~285k
+    # Python object constructions per scene and dominated every boot.
+    m.CreatePointsAttr(Vt.Vec3fArray.FromNumpy(np.ascontiguousarray(pts, dtype=np.float32)))
+    m.CreateFaceVertexCountsAttr(Vt.IntArray.FromNumpy(np.asarray(counts, dtype=np.int32)))
+    m.CreateFaceVertexIndicesAttr(Vt.IntArray.FromNumpy(np.asarray(idx, dtype=np.int32)))
     m.CreateSubdivisionSchemeAttr(UsdGeom.Tokens.none)
     m.CreateDisplayColorAttr([Gf.Vec3f(*rgb)])
     return m, len(counts)
@@ -513,6 +521,33 @@ else:
     log("trash: no CAD measurement in parts.json — using deck slot 12 fallback")
 
 trash_pos = (tcx, tcy, tr_rim)
+
+# ---------------------------- machine motion rules (R1, R2, ...) ----------------------------
+# A ledger lists WHERE each command acts, never HOW the arm gets there. Replaying it as
+# "travel to every command's coordinate in turn" invents motion the real OT-2 never makes.
+# Every rule below is a correction to that naive replay. Add to this list — do not scatter
+# the behaviour — so the twin stays honest as more protocols are replicated.
+#
+#   R1  PARK OVER THE TRASH. The gantry homes back-right, above the fixed trash, so a
+#       residual drip off the tip lands in the bin and not on a deck slot or labware lid.
+#       This is the pose at the start of a run and for the length of any protocol.delay().
+#
+#   R2  NEVER RETRACT WITHIN A WELL. Consecutive commands aimed at the same well — the
+#       standard dispense -> blowout pair — do not lift to travel height and re-enter.
+#       The tip stays down and only its depth changes. Retracting between them renders a
+#       second plunge into the well that never physically happens.
+PARK_XY = (tcx, tcy)
+
+
+def _same_site(a, b):
+    """R2: are these two consecutive steps acting on the same well?"""
+    if a is None or b is None:
+        return False
+    if a[0] in ("delay", "drop") or b[0] in ("delay", "drop"):
+        return False           # trash and the park pose are not wells
+    return a[1] == b[1] and a[2] == b[2]
+
+
 n_drop = max(1, sum(1 for s in steps if s[0] == "drop"))
 trash_tips = []
 for i in range(n_drop):
@@ -552,7 +587,7 @@ def work_xyz(i, step):
         # hold the tip over the OPEN bin, above its rim, and release
         return trash_pos[0], trash_pos[1], trash_pos[2] + 32.0
     if kind == "delay":
-        return cxd, cyd, travel_z            # park clear of the deck while the agar sets
+        return PARK_XY[0], PARK_XY[1], travel_z   # R1: home over the trash while the agar sets
     ox, oy, oz = labware_origin(slot)
     w = wdef(slot, well)
     x, y = ox + w["x"], oy + w["y"]
@@ -583,17 +618,26 @@ for slot, g in geoms.items():
     boxes.append((np.array([pos[0] + c[0] + d[0] / 2, pos[1] + c[1] + d[1] / 2, pos[2] + c[2] + d[2] / 2]),
                   np.array([d[0] / 2, d[1] / 2, d[2] / 2])))
 
-wps = [(cxd, cyd, travel_z, "home", None, "left")]
+wps = [(PARK_XY[0], PARK_XY[1], travel_z, "home", None, "left")]      # R1
+_merged = 0
 for i, s in enumerate(steps):
     tx, ty, tz = targets[i]
     if not deck.reachable(tx, ty, slots):
         report["reachable_all"] = False
         report["reach_violations"].append({"step": f"{s[0]} {s[1]}:{s[2]}"})
-    cx, cy, _ = wps[-1][:3]
     _m = s[4] if len(s) > 4 else "left"
-    wps += [(cx, cy, travel_z, "ascend", None, _m), (tx, ty, travel_z, "move", None, _m),
-            (tx, ty, tz, f"{s[0]} {s[2]}", s, _m), (tx, ty, tz, "dwell", None, _m),
-            (tx, ty, travel_z, "ascend", None, _m)]
+    _prev = steps[i - 1] if i > 0 else None
+    _next = steps[i + 1] if i + 1 < len(steps) else None
+    if _same_site(_prev, s):        # R2: already in this well — change depth only
+        _merged += 1
+    else:
+        cx, cy, _ = wps[-1][:3]
+        wps += [(cx, cy, travel_z, "ascend", None, _m), (tx, ty, travel_z, "move", None, _m)]
+    wps += [(tx, ty, tz, f"{s[0]} {s[2]}", s, _m), (tx, ty, tz, "dwell", None, _m)]
+    if not _same_site(s, _next):    # R2: only climb out once the well is finished with
+        wps += [(tx, ty, travel_z, "ascend", None, _m)]
+log(f"motion rules: R1 park over trash ({PARK_XY[0]:.0f},{PARK_XY[1]:.0f}); "
+    f"R2 merged {_merged} in-well step(s) — no re-entry between them")
 
 seg = [math.dist(wps[i - 1][:3], wps[i][:3]) for i in range(1, len(wps))]
 tot = sum(seg) or 1.0
@@ -606,7 +650,7 @@ for i in range(1, len(wps)):
         path.append((ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t,
                      lbl if k == n else "", op if k == n else None, wm))
     if op is not None and op[0] == "delay":   # the agar solidification hold, made visible
-        path += [(bx, by, bz, "", None, wm)] * 150
+        path += [(bx, by, bz, "", None, wm)] * 300   # parked over the trash, R1
     elif lbl == "dwell":                      # hold at the action so it is watchable
         path += [(bx, by, bz, "", None, wm)] * 12
 
@@ -770,6 +814,19 @@ log(f"liquid model: 1 uL = 1 mm^3. Largest well fill {_vmax0:.0f} uL = {h_flat(_
     f"shown {h_flat(_vmax0, _r0)*_g0:.2f} mm at {_g0:.2f}x in a {_w0['depth'] if _w0 else 0:.1f} mm well. "
     f"Tubes start at {args.tube_start:.0f} uL (surface {h_conical(args.tube_start, 7.45):.1f} mm).")
 
+if args.save_usd:
+    # Fast-forward the whole run so the saved scene shows the finished plate, then write it
+    # out. The stage carries its geometry inline, so the file opens anywhere on its own.
+    for _op in steps:
+        state.apply(_op)
+    _out = args.save_usd
+    os.makedirs(os.path.dirname(_out) or ".", exist_ok=True)
+    stage.GetRootLayer().Export(_out)
+    _sz = os.path.getsize(_out) if os.path.exists(_out) else 0
+    log(f"SAVED USD -> {_out} ({_sz/1048576:.1f} MB) — "
+        f"{sum(1 for v in state.wells.values() if v > 0)} wells filled, {state.trash} tips in trash")
+    sim.close(); sys.exit(0)
+
 if args.validate:
     # exercise the liquid system for real before declaring the scene good: every op kind,
     # against real prims, so a bad transform/attr fails here and not 3 minutes into a boot.
@@ -850,6 +907,8 @@ log(f"streaming {len(path)} frames/pass @ {args.fps:.0f}fps, speed {speed}x. "
 
 pass_no = 0
 fi = 0
+_first_frame_logged = False
+_t_start = time.time()
 while True:
     pass_no += 1
     for (x, y, z, lbl, op, wm) in path:
@@ -880,6 +939,10 @@ while True:
         if op:
             state.apply(op)
         sim.update()
+        if not _first_frame_logged:
+            _first_frame_logged = True
+            log(f"FIRST FRAME RENDERED after {time.time() - _t_start:.0f}s — "
+                f"SAFE TO CONNECT the WebRTC client now")
         s = (1.0 / args.fps) / speed - (time.time() - t0)
         if s > 0:
             time.sleep(s)
